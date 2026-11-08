@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../models/study_session.dart';
+import '../../services/planner_service.dart';
 import '../owl_chat/owl_chat_screen.dart';
+import 'add_study_session_screen.dart';
+import 'notifications_list_screen.dart';
 
 class PlannerScreen extends StatefulWidget {
   const PlannerScreen({super.key});
@@ -11,77 +15,60 @@ class PlannerScreen extends StatefulWidget {
 }
 
 class _PlannerScreenState extends State<PlannerScreen> {
-  int _selectedDayIndex = 2; // Wednesday
+  int _selectedDayIndex = 2; // Wednesday (starting data)
 
   final List<String> _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   final List<String> _dates = ['4', '5', '6', '7', '8', '9', '10'];
 
-  final List<Map<String, String>> _sessions = [
-    {
-      'time': '2:00 PM – 2:30 PM',
-      'subject': 'Calculus — Derivatives Check-in',
-      'type': 'Review & 5-min Quiz',
-      'duration': '30 min',
-      'status': 'Upcoming',
-    },
-    {
-      'time': '4:30 PM – 5:15 PM',
-      'subject': 'Biology — Cell Structure Flashcards',
-      'type': 'Notes & Memorization',
-      'duration': '45 min',
-      'status': 'Scheduled',
-    },
-    {
-      'time': '7:00 PM – 8:00 PM',
-      'subject': 'Calculus Crew — Group Study Session',
-      'type': 'Peer Discussion',
-      'duration': '60 min',
-      'status': 'Group Call',
-    },
-  ];
+  List<StudySession> _sessions = [];
+  bool _isLoading = true;
 
-  void _showAddSessionDialog() {
-    final titleController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Add Study Session'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(
-                hintText: 'Session Title (e.g. Physics Prep)',
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Select date & time for your calendar notifications.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-          ],
+  @override
+  void initState() {
+    super.initState();
+    _loadSessions();
+  }
+
+  Future<void> _loadSessions() async {
+    final dayName = _days[_selectedDayIndex];
+    final dayDate = _dates[_selectedDayIndex];
+    final sessions = await PlannerService.getSessionsForDay(dayName, dayDate);
+    if (mounted) {
+      setState(() {
+        _sessions = sessions;
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _onDaySelected(int index) {
+    setState(() {
+      _selectedDayIndex = index;
+      _isLoading = true;
+    });
+    _loadSessions();
+  }
+
+  Future<void> _openAddSessionScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddStudySessionScreen(
+          initialDay: _days[_selectedDayIndex],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
-              foregroundColor: AppColors.textDark,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Study session scheduled!')),
-              );
-            },
-            child: const Text('Schedule'),
-          ),
-        ],
+      ),
+    );
+
+    if (result == true) {
+      await _loadSessions();
+    }
+  }
+
+  void _openNotificationsList() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const NotificationsListScreen(),
       ),
     );
   }
@@ -96,7 +83,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Header with Title, Notifications Bell Icon, and Owl Mascot
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -108,22 +95,39 @@ class _PlannerScreenState extends State<PlannerScreen> {
                       color: AppColors.textDark,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const OwlChatScreen()),
-                      );
-                    },
-                    child: SizedBox(
-                      width: 46,
-                      height: 46,
-                      child: Image.asset(
-                        AppAssets.owlSitting,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Scheduled Reminders',
+                        icon: const Icon(
+                          Icons.notifications_outlined,
+                          color: AppColors.textDark,
+                          size: 24,
+                        ),
+                        onPressed: _openNotificationsList,
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OwlChatScreen(),
+                            ),
+                          );
+                        },
+                        child: SizedBox(
+                          width: 46,
+                          height: 46,
+                          child: Image.asset(
+                            AppAssets.owlSitting,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const SizedBox(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -143,11 +147,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   children: List.generate(_days.length, (index) {
                     final isSelected = _selectedDayIndex == index;
                     return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedDayIndex = index;
-                        });
-                      },
+                      onTap: () => _onDaySelected(index),
                       child: Container(
                         width: 42,
                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -162,16 +162,18 @@ class _PlannerScreenState extends State<PlannerScreen> {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected ? AppColors.textDark : AppColors.textSecondary,
+                                color: isSelected
+                                    ? AppColors.textDark
+                                    : AppColors.textSecondary,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               _dates[index],
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: isSelected ? AppColors.textDark : AppColors.textDark,
+                                color: AppColors.textDark,
                               ),
                             ),
                           ],
@@ -225,84 +227,161 @@ class _PlannerScreenState extends State<PlannerScreen> {
               const SizedBox(height: 24),
 
               // Sessions list
-              const Text(
-                'Today\'s Plan',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${_days[_selectedDayIndex]}\'s Plan',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  Text(
+                    '${_sessions.length} ${_sessions.length == 1 ? "session" : "sessions"}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
 
-              ..._sessions.map((session) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              session['time']!,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.accentDark,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceMuted,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                session['status']!,
+              if (_isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 30),
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
+                )
+              else if (_sessions.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.event_busy_rounded,
+                        size: 36,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No study sessions scheduled for ${_days[_selectedDayIndex]}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textDark,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Tap + Add Study Session below to schedule one.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ..._sessions.map((session) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                session.time,
                                 style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.accentDark,
                                 ),
                               ),
+                              Row(
+                                children: [
+                                  if (session.reminderEnabled)
+                                    const Padding(
+                                      padding: EdgeInsets.only(right: 6.0),
+                                      child: Icon(
+                                        Icons.alarm_on,
+                                        size: 14,
+                                        color: AppColors.accent,
+                                      ),
+                                    ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfaceMuted,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      session.status,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            session.title,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textDark,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          session['subject']!,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${session['type']} • ${session['duration']}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
+                          const SizedBox(height: 4),
+                          Text(
+                            session.title.contains(session.subject)
+                                ? '${session.type} • ${session.duration}'
+                                : '${session.subject} • ${session.type} • ${session.duration}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
 
               const SizedBox(height: 16),
 
-              // + Add Study Session Button
+              // + Add Study Session Button (opens full screen)
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -315,7 +394,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                     ),
                     elevation: 0,
                   ),
-                  onPressed: _showAddSessionDialog,
+                  onPressed: _openAddSessionScreen,
                   child: const Text(
                     '+ Add Study Session',
                     style: TextStyle(

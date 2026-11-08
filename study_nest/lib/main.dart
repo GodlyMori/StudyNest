@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/auth/welcome_screen.dart';
+import 'services/notification_service.dart';
 import 'services/supabase_service.dart';
 
 Future<void> main() async {
@@ -9,6 +10,9 @@ Future<void> main() async {
   // Initialize Supabase from --dart-define environment variables:
   // e.g. flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
   await SupabaseService.initialize();
+
+  // Initialize Local Notifications and Timezone for study session reminders
+  await NotificationService.initialize();
 
   runApp(const StudyNestApp());
 }

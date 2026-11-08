@@ -4,19 +4,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:study_nest/data/quiz_questions.dart';
 import 'package:study_nest/data/study_materials.dart';
 import 'package:study_nest/main.dart';
+import 'package:study_nest/models/study_session.dart';
 import 'package:study_nest/screens/auth/login_screen.dart';
 import 'package:study_nest/screens/materials/material_detail_screen.dart';
 import 'package:study_nest/screens/materials/materials_screen.dart';
+import 'package:study_nest/screens/planner/add_study_session_screen.dart';
+import 'package:study_nest/screens/planner/notifications_list_screen.dart';
+import 'package:study_nest/screens/planner/planner_screen.dart';
 import 'package:study_nest/screens/quiz/quiz_screen.dart';
 import 'package:study_nest/screens/recommendations/recommendations_hub_screen.dart';
 import 'package:study_nest/services/guest_score_service.dart';
 import 'package:study_nest/services/material_download_service.dart';
 import 'package:study_nest/services/network_service.dart';
+import 'package:study_nest/services/notification_service.dart';
+import 'package:study_nest/services/planner_service.dart';
 import 'package:study_nest/services/recommendation_engine.dart';
 
 void main() {
-  setUp(() {
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
   });
 
   // --- Phase 1 Existing Tests ---
@@ -390,5 +398,205 @@ void main() {
 
     // Reset mock
     NetworkService.mockIsOnline = null;
+  });
+
+  // --- Phase 4 New Tests ---
+
+  testWidgets('Add Session opens as a full screen (not a dialog) with title, subject, date, time, and reminder toggle', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: PlannerScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap + Add Study Session
+    final addButton = find.widgetWithText(ElevatedButton, '+ Add Study Session');
+    expect(addButton, findsOneWidget);
+    await tester.ensureVisible(addButton);
+    await tester.tap(addButton);
+    await tester.pumpAndSettle();
+
+    // Verify it opened as a full screen and NOT an AlertDialog dialog
+    expect(find.byType(AddStudySessionScreen), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+
+    // Verify all 5 required fields exist on the screen
+    expect(find.byType(TextField), findsOneWidget); // Title field
+    expect(find.text('Subject'), findsOneWidget); // Subject field
+    expect(find.text('Date'), findsOneWidget); // Date field
+    expect(find.text('Time'), findsOneWidget); // Time field
+    expect(find.byType(Switch), findsOneWidget); // Reminder toggle
+  });
+
+  testWidgets('The date picker (frame 43) and time picker (frame 44) set the date and time fields', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: AddStudySessionScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 1. Test Date Picker (frame 43)
+    final dateFinder = find.textContaining('Nov 2026');
+    expect(dateFinder, findsOneWidget);
+    await tester.tap(dateFinder);
+    await tester.pumpAndSettle();
+
+    // Verify DatePickerDialog appears
+    expect(find.byType(DatePickerDialog), findsOneWidget);
+    // Tap OK
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DatePickerDialog), findsNothing);
+
+    // 2. Test Time Picker (frame 44)
+    final timeFinder = find.textContaining('PM');
+    expect(timeFinder, findsOneWidget);
+    await tester.tap(timeFinder);
+    await tester.pumpAndSettle();
+
+    // Verify TimePicker appears
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    // Tap OK
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TimePickerDialog), findsNothing);
+  });
+
+  testWidgets('Saving a session for Thursday makes it appear on Thursday and not on Wednesday', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await PlannerService.resetToDefaults();
+
+    // Save a custom session for Thursday
+    const thursdaySession = StudySession(
+      id: 'session_thu_physics',
+      title: 'Physics Mechanics Mastery',
+      subject: 'Physics',
+      date: 'Thu',
+      time: '3:00 PM – 3:30 PM',
+      type: 'Self Study',
+      duration: '30 min',
+      status: 'Scheduled',
+    );
+    await PlannerService.saveSession(thursdaySession);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: PlannerScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // By default Wednesday is selected
+    expect(find.text('Wed\'s Plan'), findsOneWidget);
+    // Wednesday starting sessions must be present
+    expect(find.text('Calculus — Derivatives Check-in'), findsOneWidget);
+    expect(find.text('Biology — Cell Structure Flashcards'), findsOneWidget);
+    expect(find.text('Calculus Crew — Group Study Session'), findsOneWidget);
+    // Thursday session must NOT appear on Wednesday
+    expect(find.text('Physics Mechanics Mastery'), findsNothing);
+
+    // Switch to Thursday
+    await tester.tap(find.text('Thu'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Thu\'s Plan'), findsOneWidget);
+    // Thursday session MUST appear
+    expect(find.text('Physics Mechanics Mastery'), findsOneWidget);
+    // Wednesday sessions must NOT appear on Thursday
+    expect(find.text('Calculus — Derivatives Check-in'), findsNothing);
+    expect(find.text('Biology — Cell Structure Flashcards'), findsNothing);
+    expect(find.text('Calculus Crew — Group Study Session'), findsNothing);
+  });
+
+  testWidgets('The permission dialog appears the first time a reminder is turned on, and declining leaves reminder off', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await NotificationService.clearAll();
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: AddStudySessionScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Toggle reminder ON
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+
+    // Verify permission dialog (frame 39) appears
+    expect(find.text('Allow Notifications?'), findsOneWidget);
+    expect(find.text('Don\'t Allow'), findsOneWidget);
+    expect(find.text('Allow'), findsOneWidget);
+
+    // User taps "Don't Allow"
+    await tester.tap(find.text('Don\'t Allow'));
+    await tester.pumpAndSettle();
+
+    // Reminder toggle must remain OFF
+    final switchWidget = tester.widget<Switch>(find.byType(Switch));
+    expect(switchWidget.value, false);
+
+    // Tap switch again to allow
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+
+    // Dialog appears again
+    expect(find.text('Allow Notifications?'), findsOneWidget);
+    await tester.tap(find.text('Allow'));
+    await tester.pumpAndSettle();
+
+    // Reminder toggle is now ON
+    final switchWidgetOn = tester.widget<Switch>(find.byType(Switch));
+    expect(switchWidgetOn.value, true);
+  });
+
+  testWidgets('Saving with reminder on schedules a notification, and notifications list shows scheduled reminder with cancel action', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await NotificationService.clearAll();
+
+    // 1. Schedule a session reminder
+    await NotificationService.scheduleSessionReminder(
+      id: 777,
+      title: 'Calculus Final Review',
+      body: 'Starts at 2:00 PM for Calculus',
+      scheduledDateTime: DateTime(2026, 11, 7, 14, 0),
+      dateStr: 'Thu, 7 Nov 2026',
+      timeStr: '2:00 PM',
+    );
+
+    // Verify it is saved in service
+    final reminders = await NotificationService.getScheduledReminders();
+    expect(reminders.length, 1);
+    expect(reminders.first['title'], 'Calculus Final Review');
+
+    // 2. Open Notifications List Screen
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: NotificationsListScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify screen displays the scheduled reminder
+    expect(find.text('Scheduled Reminders'), findsOneWidget);
+    expect(find.text('Calculus Final Review'), findsOneWidget);
+    expect(find.text('Thu, 7 Nov 2026 • 2:00 PM'), findsOneWidget);
+
+    // 3. Cancel the reminder
+    final cancelBtn = find.byTooltip('Cancel reminder');
+    expect(cancelBtn, findsOneWidget);
+    await tester.tap(cancelBtn);
+    await tester.pumpAndSettle();
+
+    // Verify it is removed and shows empty state
+    expect(find.text('Calculus Final Review'), findsNothing);
+    expect(find.text('No scheduled reminders'), findsOneWidget);
+
+    final updatedReminders = await NotificationService.getScheduledReminders();
+    expect(updatedReminders.isEmpty, true);
   });
 }
