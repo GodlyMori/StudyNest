@@ -30,13 +30,17 @@ class SupabaseService {
       return;
     }
 
+    var cleanUrl = effectiveUrl.trim();
+    cleanUrl = cleanUrl.replaceAll(RegExp(r'/rest/v1/?$'), '');
+    cleanUrl = cleanUrl.replaceAll(RegExp(r'/+$'), '');
+
     try {
       await Supabase.initialize(
-        url: effectiveUrl,
-        anonKey: effectiveKey,
+        url: cleanUrl,
+        anonKey: effectiveKey.trim(),
       );
       instance._initialized = true;
-      debugPrint('Supabase initialized successfully.');
+      debugPrint('Supabase initialized successfully with $cleanUrl');
     } catch (e) {
       debugPrint('Failed to initialize Supabase: $e');
     }
