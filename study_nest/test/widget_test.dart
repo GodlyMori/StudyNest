@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:study_nest/data/quiz_questions.dart';
+import 'package:study_nest/data/study_materials.dart';
 import 'package:study_nest/main.dart';
 import 'package:study_nest/screens/auth/login_screen.dart';
+import 'package:study_nest/screens/materials/material_detail_screen.dart';
 import 'package:study_nest/screens/materials/materials_screen.dart';
 import 'package:study_nest/screens/quiz/quiz_screen.dart';
 import 'package:study_nest/screens/recommendations/recommendations_hub_screen.dart';
 import 'package:study_nest/services/guest_score_service.dart';
+import 'package:study_nest/services/material_download_service.dart';
+import 'package:study_nest/services/network_service.dart';
 import 'package:study_nest/services/recommendation_engine.dart';
 
 void main() {
@@ -193,5 +197,198 @@ void main() {
 
     // Verifies navigation reaches MaterialsScreen per Figma
     expect(find.byType(MaterialsScreen), findsOneWidget);
+  });
+
+  // --- Phase 3 New Tests ---
+
+  testWidgets('Search filters the list by title and by content; clearing search shows all 4 materials', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MaterialsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify all 4 materials are initially visible
+    expect(find.text('Derivatives Cheat Sheet'), findsOneWidget);
+    expect(find.text('Cell Structure Notes'), findsOneWidget);
+    expect(find.text('WW2 Timeline'), findsOneWidget);
+    expect(find.text('Calculus Integral Tables'), findsOneWidget);
+
+    // 1. Filter by Title: typing "derivative"
+    await tester.enterText(find.byType(TextField), 'derivative');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Derivatives Cheat Sheet'), findsOneWidget);
+    expect(find.text('Cell Structure Notes'), findsNothing);
+    expect(find.text('WW2 Timeline'), findsNothing);
+    expect(find.text('Calculus Integral Tables'), findsNothing);
+
+    // 2. Clear search: shows all 4 materials again
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Derivatives Cheat Sheet'), findsOneWidget);
+    expect(find.text('Cell Structure Notes'), findsOneWidget);
+    expect(find.text('WW2 Timeline'), findsOneWidget);
+    expect(find.text('Calculus Integral Tables'), findsOneWidget);
+
+    // 3. Filter by Content: typing "organelles" (from Cell Structure content)
+    await tester.enterText(find.byType(TextField), 'organelles');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cell Structure Notes'), findsOneWidget);
+    expect(find.text('Derivatives Cheat Sheet'), findsNothing);
+    expect(find.text('WW2 Timeline'), findsNothing);
+    expect(find.text('Calculus Integral Tables'), findsNothing);
+  });
+
+  testWidgets('Search with no matches shows the no-results state with clear search button', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MaterialsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'termthatmatchesnothing123');
+    await tester.pumpAndSettle();
+
+    expect(find.text('No materials match your search'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Clear search'), findsOneWidget);
+
+    // Tap Clear search button recovers the list
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Clear search'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Derivatives Cheat Sheet'), findsOneWidget);
+    expect(find.text('Cell Structure Notes'), findsOneWidget);
+    expect(find.text('WW2 Timeline'), findsOneWidget);
+    expect(find.text('Calculus Integral Tables'), findsOneWidget);
+  });
+
+  testWidgets('Searching while Maths chip is selected only shows Maths materials', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MaterialsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap 'Maths' chip
+    await tester.tap(find.text('Maths'));
+    await tester.pumpAndSettle();
+
+    // Only Maths items should be visible
+    expect(find.text('Derivatives Cheat Sheet'), findsOneWidget);
+    expect(find.text('Calculus Integral Tables'), findsOneWidget);
+    expect(find.text('Cell Structure Notes'), findsNothing);
+    expect(find.text('WW2 Timeline'), findsNothing);
+
+    // Search for "integral" within Maths
+    await tester.enterText(find.byType(TextField), 'integral');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Calculus Integral Tables'), findsOneWidget);
+    expect(find.text('Derivatives Cheat Sheet'), findsNothing);
+  });
+
+  testWidgets('Tapping a material opens the Material Detail screen (not bottom sheet) with full content', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MaterialsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap Derivatives Cheat Sheet
+    await tester.tap(find.text('Derivatives Cheat Sheet'));
+    await tester.pumpAndSettle();
+
+    // Verify it opened MaterialDetailScreen as a full screen
+    expect(find.byType(MaterialDetailScreen), findsOneWidget);
+    expect(find.byType(BottomSheet), findsNothing);
+
+    // Verify Title, Meta, and Full content are displayed
+    expect(find.text('Material Details'), findsOneWidget);
+    expect(find.text('Derivatives Cheat Sheet'), findsOneWidget);
+    expect(find.text('Maths • 8 min • Easy'), findsOneWidget);
+    expect(find.textContaining('Product rule: (uv)\' = u\'v + uv\''), findsOneWidget);
+  });
+
+  testWidgets('Downloading Derivatives Cheat Sheet persists it, changes status to Downloaded, and leaves other 3 with Needs Internet (no hardcoded Offline)', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await MaterialDownloadService.clearAll();
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MaterialsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Initially, no material has an "Offline" badge; all 4 show "Needs Internet"
+    expect(find.text('Offline'), findsNothing);
+    expect(find.text('Needs Internet'), findsNWidgets(4));
+    expect(find.text('Downloaded'), findsNothing);
+
+    // Download Derivatives Cheat Sheet directly from its list item action
+    final downloadButtons = find.byTooltip('Download offline');
+    expect(downloadButtons, findsNWidgets(4));
+    await tester.tap(downloadButtons.first);
+    await tester.pumpAndSettle();
+
+    // Check SharedPreferences persistence via service
+    final isDownloaded = await MaterialDownloadService.isDownloaded('mat_derivatives');
+    expect(isDownloaded, true);
+
+    // Check UI: Derivatives Cheat Sheet now has "Downloaded" badge, the others still show "Needs Internet"
+    expect(find.text('Downloaded'), findsOneWidget);
+    expect(find.text('Needs Internet'), findsNWidgets(3));
+    expect(find.text('Offline'), findsNothing);
+  });
+
+  testWidgets('A downloaded cheat sheet opens from local copy with network/wifi off', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await MaterialDownloadService.clearAll();
+
+    // 1. Download Derivatives Cheat Sheet
+    final derivativesMat = StudyMaterialBank.getById('mat_derivatives')!;
+    await MaterialDownloadService.downloadMaterial(derivativesMat);
+
+    // 2. Simulate offline / wifi off
+    NetworkService.mockIsOnline = false;
+
+    // 3. Open downloaded material in MaterialDetailScreen
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MaterialDetailScreen(material: derivativesMat),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Content is successfully read from local offline storage
+    expect(find.text('Derivatives Cheat Sheet'), findsOneWidget);
+    expect(find.text('Loaded from local copy. Available without wifi.'), findsOneWidget);
+    expect(find.textContaining('Product rule: (uv)\' = u\'v + uv\''), findsOneWidget);
+
+    // 4. In contrast, opening an un-downloaded material with wifi off displays internet required notice
+    final cellMat = StudyMaterialBank.getById('mat_cell_structure')!;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MaterialDetailScreen(material: cellMat),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Internet Connection Required'), findsOneWidget);
+    expect(find.textContaining('This material has not been downloaded for offline reading'), findsOneWidget);
+
+    // Reset mock
+    NetworkService.mockIsOnline = null;
   });
 }

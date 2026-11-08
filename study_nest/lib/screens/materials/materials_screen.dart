@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../data/study_materials.dart';
+import '../../models/study_material.dart';
+import '../../services/material_download_service.dart';
 import '../owl_chat/owl_chat_screen.dart';
+import 'material_detail_screen.dart';
 
 class MaterialsScreen extends StatefulWidget {
   const MaterialsScreen({super.key});
@@ -13,127 +17,96 @@ class MaterialsScreen extends StatefulWidget {
 class _MaterialsScreenState extends State<MaterialsScreen> {
   int _selectedCategoryIndex = 0;
   final List<String> _categories = ['All', 'Maths', 'Science', 'History'];
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  Set<String> _downloadedIds = {};
+  bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _materials = [
-    {
-      'title': 'Derivatives Cheat Sheet',
-      'category': 'Maths',
-      'meta': 'Maths • 8 min • Easy',
-      'status': 'Offline',
-      'statusColor': AppColors.success,
-      'content': 'Key formulas: d/dx(c) = 0, d/dx(x^n) = n*x^(n-1), Product rule: (uv)\' = u\'v + uv\', Quotient rule: (u/v)\' = (u\'v - uv\')/v².',
-    },
-    {
-      'title': 'Cell Structure Notes',
-      'category': 'Science',
-      'meta': 'Science • 12 min • Medium',
-      'status': 'Offline',
-      'statusColor': AppColors.warning,
-      'content': 'Eukaryotic cells contain membrane-bound organelles: Nucleus (houses DNA), Mitochondria (ATP production), Ribosomes (protein synthesis).',
-    },
-    {
-      'title': 'WW2 Timeline',
-      'category': 'History',
-      'meta': 'History • 10 min • Easy',
-      'status': 'Offline',
-      'statusColor': AppColors.success,
-      'content': '1939: Outbreak of war with Poland invasion; 1941: Pearl Harbor; 1944: D-Day Normandy landings; 1945: Victory in Europe and Pacific.',
-    },
-    {
-      'title': 'Calculus Integral Tables',
-      'category': 'Maths',
-      'meta': 'Maths • 15 min • Hard',
-      'status': 'Offline',
-      'statusColor': AppColors.success,
-      'content': 'Integration formulas for trigonometric, exponential, and polynomial functions.',
-    },
-  ];
+  final List<StudyMaterial> _materials = StudyMaterialBank.getMaterials();
 
-  void _openMaterialDetail(Map<String, dynamic> material) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    material['title'] as String,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: (material['statusColor'] as Color).withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    material['status'] as String,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: material['statusColor'] as Color,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              material['meta'] as String,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-            const Divider(height: 32),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(
-                  material['content'] as String,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    height: 1.6,
-                    color: AppColors.textDark,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+  @override
+  void initState() {
+    super.initState();
+    _loadDownloadedStatus();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadDownloadedStatus() async {
+    final ids = await MaterialDownloadService.getDownloadedIds();
+    if (mounted) {
+      setState(() {
+        _downloadedIds = ids.toSet();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _clearSearch() {
+    setState(() {
+      _searchController.clear();
+      _searchQuery = '';
+    });
+  }
+
+  Future<void> _openMaterialDetail(StudyMaterial material) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MaterialDetailScreen(material: material),
       ),
     );
+    await _loadDownloadedStatus();
+  }
+
+  Future<void> _toggleDownload(StudyMaterial material) async {
+    final isDownloaded = _downloadedIds.contains(material.id);
+    if (isDownloaded) {
+      await MaterialDownloadService.removeDownloadedMaterial(material.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Removed from offline downloads'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      await MaterialDownloadService.downloadMaterial(material);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Downloaded for offline use'),
+            duration: Duration(seconds: 2),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    }
+    await _loadDownloadedStatus();
+  }
+
+  bool _matchesQuery(StudyMaterial m, String query) {
+    if (query.trim().isEmpty) return true;
+    final q = query.trim().toLowerCase();
+    return m.title.toLowerCase().contains(q) ||
+        m.category.toLowerCase().contains(q) ||
+        m.meta.toLowerCase().contains(q) ||
+        m.content.toLowerCase().contains(q);
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredMaterials = _selectedCategoryIndex == 0
-        ? _materials
-        : _materials.where((m) => m['category'] == _categories[_selectedCategoryIndex]).toList();
+    final filteredMaterials = _materials.where((m) {
+      final matchesCategory = _selectedCategoryIndex == 0 ||
+          m.category == _categories[_selectedCategoryIndex];
+      final matchesSearch = _matchesQuery(m, _searchQuery);
+      return matchesCategory && matchesSearch;
+    }).toList();
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -159,7 +132,9 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const OwlChatScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const OwlChatScreen(),
+                        ),
                       );
                     },
                     child: SizedBox(
@@ -168,7 +143,8 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                       child: Image.asset(
                         AppAssets.owlReading,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox(),
                       ),
                     ),
                   ),
@@ -177,7 +153,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
 
               const SizedBox(height: 16),
 
-              // Search Bar
+              // Working Search Bar
               Container(
                 height: 48,
                 decoration: BoxDecoration(
@@ -187,18 +163,49 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
-                  children: const [
-                    Icon(Icons.search, size: 20, color: AppColors.textSecondary),
-                    SizedBox(width: 8),
+                  children: [
+                    const Icon(
+                      Icons.search,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        'Search notes, cheat sheets…',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: const InputDecoration(
+                          hintText: 'Search notes, cheat sheets…',
+                          hintStyle: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(vertical: 12),
                         ),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textDark,
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
                       ),
                     ),
+                    if (_searchQuery.isNotEmpty)
+                      GestureDetector(
+                        onTap: _clearSearch,
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Icon(
+                            Icons.close,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -223,10 +230,14 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                           height: 34,
                           padding: const EdgeInsets.symmetric(horizontal: 18),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.backgroundDark : Colors.white,
+                            color: isSelected
+                                ? AppColors.backgroundDark
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(17),
                             border: Border.all(
-                              color: isSelected ? Colors.transparent : AppColors.border,
+                              color: isSelected
+                                  ? Colors.transparent
+                                  : AppColors.border,
                             ),
                           ),
                           alignment: Alignment.center,
@@ -235,7 +246,9 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: isSelected ? Colors.white : AppColors.textDark,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.textDark,
                             ),
                           ),
                         ),
@@ -247,65 +260,160 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
 
               const SizedBox(height: 20),
 
-              // Materials List
-              ...filteredMaterials.map((material) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Material(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () => _openMaterialDetail(material),
-                      child: Container(
-                        height: 84,
-                        padding: const EdgeInsets.symmetric(horizontal: 18),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
+              // Materials List or No-Results State
+              if (_isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40),
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
+                )
+              else if (filteredMaterials.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 40,
+                      horizontal: 20,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.border.withOpacity(0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.search_off_rounded,
+                            size: 40,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 16),
+                        const Text(
+                          'No materials match your search',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Try adjusting your search query or switching categories.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _clearSearch,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                          ),
+                          child: const Text('Clear search'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ...filteredMaterials.map((material) {
+                  final isDownloaded = _downloadedIds.contains(material.id);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _openMaterialDetail(material),
+                        child: Container(
+                          height: 84,
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      material.title,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      material.meta,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    material['title'] as String,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textDark,
+                                    isDownloaded
+                                        ? 'Downloaded'
+                                        : 'Needs Internet',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDownloaded
+                                          ? AppColors.success
+                                          : AppColors.textSecondary,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    material['meta'] as String,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.textSecondary,
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    tooltip: isDownloaded
+                                        ? 'Downloaded (Tap to remove)'
+                                        : 'Download offline',
+                                    icon: Icon(
+                                      isDownloaded
+                                          ? Icons.check_circle
+                                          : Icons.download_outlined,
+                                      size: 20,
+                                      color: isDownloaded
+                                          ? AppColors.success
+                                          : AppColors.textSecondary,
                                     ),
+                                    onPressed: () => _toggleDownload(material),
                                   ),
                                 ],
                               ),
-                            ),
-                            Text(
-                              material['status'] as String,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: material['statusColor'] as Color,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
 
               const SizedBox(height: 20),
 
