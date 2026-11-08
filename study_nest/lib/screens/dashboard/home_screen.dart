@@ -152,131 +152,138 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-              // Mascot Interactive Banner (Matching Image 4 & Figma prototype)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const OwlChatScreen()),
-                    );
-                  },
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 105,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        // Grey Banner Rounded Background
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          height: 84,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE2E8F0),
-                              borderRadius: BorderRadius.circular(16),
+              // Full-Bleed Mascot Interactive Banner (Matching Figma prototype 1:1)
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const OwlChatScreen()),
+                  );
+                },
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 165,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Full-bleed Grey Banner Background (left-0 to width-100%, 92px height)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: 92,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE2E8F0),
+                            border: Border(
+                              top: BorderSide(color: Color(0xFFCBD5E1), width: 1),
+                              bottom: BorderSide(color: Color(0xFFCBD5E1), width: 1),
                             ),
                           ),
                         ),
+                      ),
 
-                        // Owl Mascot (Standing upright, feet on card, head poking slightly above)
-                        Positioned(
-                          left: 10,
-                          bottom: 6,
-                          child: SizedBox(
-                            width: 86,
-                            height: 96,
-                            child: Image.asset(
-                              AppAssets.owlDashboard,
-                              fit: BoxFit.contain,
+                      // Giant Owl Mascot (Clipped feet, head poking 75px above banner into white space)
+                      Positioned(
+                        left: -60,
+                        bottom: 0,
+                        child: ClipRect(
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            heightFactor: 0.72, // Crops lower feet/body flush with banner
+                            child: Transform.rotate(
+                              angle: -5 * 3.1415926535 / 180, // -5 degrees from Figma
                               alignment: Alignment.bottomCenter,
-                              errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                              child: SizedBox(
+                                width: 270,
+                                height: 245,
+                                child: Image.asset(
+                                  AppAssets.owlDashboard,
+                                  fit: BoxFit.contain,
+                                  alignment: Alignment.center,
+                                  errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                                ),
+                              ),
                             ),
                           ),
                         ),
+                      ),
 
-                        // Speech Bubble on the right (with seamless pointer tail pointing to Owl)
-                        Positioned(
-                          left: 106,
-                          right: 12,
-                          bottom: 8,
-                          height: 68,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF1E293B).withOpacity(0.06),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
+                      // Speech Bubble on the right (with attached pointer tail)
+                      Positioned(
+                        left: 140,
+                        right: 20,
+                        bottom: 6,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF1E293B).withOpacity(0.08),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              // Pointer Tail pointing left toward Owl
+                              Positioned(
+                                left: -7,
+                                top: 20,
+                                child: CustomPaint(
+                                  size: const Size(8, 14),
+                                  painter: _SpeechTailPainter(color: Colors.white),
                                 ),
-                              ],
-                            ),
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                // Clean triangular pointer tail attached flush to the left edge
-                                Positioned(
-                                  left: -7,
-                                  top: 15,
-                                  child: CustomPaint(
-                                    size: const Size(8, 14),
-                                    painter: _SpeechTailPainter(color: Colors.white),
-                                  ),
-                                ),
+                              ),
 
-                                // Text content
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const Text(
-                                            'Owl',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13,
-                                              color: AppColors.textDark,
-                                            ),
+                              // Text content
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Text(
+                                          'Owl',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: AppColors.textDark,
                                           ),
-                                          const Spacer(),
-                                          Container(
-                                            width: 8,
-                                            height: 8,
-                                            decoration: const BoxDecoration(
-                                              color: AppColors.primary,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 3),
-                                      const Text(
-                                        'Ready for your 5-min Calculus check-in?',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Color(0xFF475569),
-                                          height: 1.3,
                                         ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                                        const Spacer(),
+                                        Container(
+                                          width: 10,
+                                          height: 10,
+                                          decoration: const BoxDecoration(
+                                            color: AppColors.primary,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Ready for your 5-min Calculus check-in?',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF475569),
+                                        height: 1.35,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
