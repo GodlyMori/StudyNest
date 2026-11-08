@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
-import '../quiz/topics_quizzes_screen.dart';
 import '../quiz/quiz_screen.dart';
 import '../groups/study_groups_screen.dart';
 import '../planner/planner_screen.dart';
 import '../materials/materials_screen.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import '../profile/profile_screen.dart';
+import '../recommendations/recommendations_hub_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final Function(int)? onNavigateTab;
@@ -394,7 +394,7 @@ class HomeScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const TopicsQuizzesScreen(),
+                                builder: (context) => const RecommendationsHubScreen(),
                               ),
                             );
                           },

@@ -1,19 +1,48 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../services/recommendation_engine.dart';
+import '../materials/materials_screen.dart';
+import '../recommendations/recommendations_hub_screen.dart';
 import 'quiz_screen.dart';
 
-class QuizResultsScreen extends StatelessWidget {
+class QuizResultsScreen extends StatefulWidget {
   final String subject;
   final int score;
   final String grade;
+  final List<String> strongTopics;
+  final List<String> focusTopics;
 
   const QuizResultsScreen({
     super.key,
-    this.subject = 'Calculus',
-    this.score = 82,
-    this.grade = 'Grade B',
+    required this.subject,
+    required this.score,
+    required this.grade,
+    this.strongTopics = const ['Algebra', 'Functions'],
+    this.focusTopics = const ['Derivatives', 'Limits'],
   });
+
+  @override
+  State<QuizResultsScreen> createState() => _QuizResultsScreenState();
+}
+
+class _QuizResultsScreenState extends State<QuizResultsScreen> {
+  List<RecommendationItem> _recommendations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecommendations();
+  }
+
+  Future<void> _loadRecommendations() async {
+    final list = await RecommendationEngine.getRankedRecommendations();
+    if (mounted) {
+      setState(() {
+        _recommendations = list;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +92,7 @@ class QuizResultsScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.primary,
+                        color: AppColors.accent,
                         width: 8,
                       ),
                     ),
@@ -72,7 +101,7 @@ class QuizResultsScreen extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '$score%',
+                        '${widget.score}%',
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -80,7 +109,7 @@ class QuizResultsScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        grade,
+                        widget.grade,
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -94,19 +123,19 @@ class QuizResultsScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Strengths & Focus
-              const Text(
-                'Strengths • Algebra, Functions',
-                style: TextStyle(
+              // Strengths & Focus (Ranked dynamically)
+              Text(
+                'Strengths • ${widget.strongTopics.isNotEmpty ? widget.strongTopics.join(', ') : widget.subject}',
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textDark,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Focus • Derivatives, Limits',
-                style: TextStyle(
+              Text(
+                'Focus • ${widget.focusTopics.isNotEmpty ? widget.focusTopics.join(', ') : "General Review"}',
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: AppColors.error,
@@ -145,8 +174,12 @@ class QuizResultsScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     GestureDetector(
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Starting adaptive ML review plan...')),
+                        // Actually start the plan (navigates to Materials per Figma)
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MaterialsScreen(),
+                          ),
                         );
                       },
                       child: const Text(
@@ -164,43 +197,72 @@ class QuizResultsScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // ML Recommendations Hub Header
-              Align(
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'ML Recommendations Hub',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
+              // ML Recommendations Hub Header (clickable)
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RecommendationsHubScreen(),
+                    ),
+                  ).then((_) => _loadRecommendations());
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text(
+                      'ML Recommendations Hub',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
 
-              _buildRecommendationItem(
-                context,
-                title: 'Calculus — Derivatives',
-                subtitle: 'High priority • 8 min',
-                actionLabel: 'Retake',
-                actionColor: AppColors.success,
-              ),
-              const SizedBox(height: 10),
-              _buildRecommendationItem(
-                context,
-                title: 'Physics — Forces',
-                subtitle: 'Medium • 6 min',
-                actionLabel: 'Retake',
-                actionColor: AppColors.warning,
-              ),
-              const SizedBox(height: 10),
-              _buildRecommendationItem(
-                context,
-                title: 'History — WW2 Causes',
-                subtitle: 'Low • 10 min',
-                actionLabel: 'Retake',
-                actionColor: AppColors.textSecondary,
-              ),
+              if (_recommendations.isNotEmpty)
+                ..._recommendations.take(3).map((item) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: _buildRecommendationItem(
+                      context,
+                      title: '${item.subject} — ${item.topic}',
+                      subtitle: '${item.priority} • ${item.timeEstimate}',
+                      actionLabel: 'Retake',
+                      actionColor: item.priority == 'High priority'
+                          ? AppColors.error
+                          : AppColors.success,
+                      subject: item.subject,
+                    ),
+                  );
+                })
+              else ...[
+                _buildRecommendationItem(
+                  context,
+                  title: 'Calculus — Derivatives',
+                  subtitle: 'High priority • 8 min',
+                  actionLabel: 'Retake',
+                  actionColor: AppColors.success,
+                  subject: 'Calculus',
+                ),
+                const SizedBox(height: 10),
+                _buildRecommendationItem(
+                  context,
+                  title: 'Physics — Forces',
+                  subtitle: 'Medium • 6 min',
+                  actionLabel: 'Retake',
+                  actionColor: AppColors.warning,
+                  subject: 'Physics',
+                ),
+              ],
 
               const SizedBox(height: 24),
             ],
@@ -216,6 +278,7 @@ class QuizResultsScreen extends StatelessWidget {
     required String subtitle,
     required String actionLabel,
     required Color actionColor,
+    required String subject,
   }) {
     return Container(
       width: double.infinity,
@@ -228,35 +291,37 @@ class QuizResultsScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          TextButton(
-            onPressed: () {
+          GestureDetector(
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => QuizScreen(subject: title),
+                  builder: (context) => QuizScreen(subject: subject),
                 ),
-              );
+              ).then((_) => _loadRecommendations());
             },
             child: Text(
               actionLabel,

@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../data/quiz_questions.dart';
+import '../../models/quiz_question.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
+import '../../services/recommendation_engine.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import 'quiz_results_screen.dart';
 
@@ -11,23 +15,93 @@ class QuizScreen extends StatefulWidget {
 
   const QuizScreen({super.key, this.subject = 'Calculus'});
 
+  static String calculateGrade(int score) {
+    if (score >= 90) return 'Grade A';
+    if (score >= 80) return 'Grade B';
+    if (score >= 70) return 'Grade C';
+    if (score >= 60) return 'Grade D';
+    return 'Grade F';
+  }
+
   @override
   State<QuizScreen> createState() => _QuizScreenState();
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  int _currentQuestionIndex = 3; // Question 4 of 10
-  final int _totalQuestions = 10;
-  int? _selectedAnswerIndex = 1; // Default selected option B (2x) as in Figma prototype
+  late List<QuizQuestion> _questions;
+  int _currentQuestionIndex = 0;
+  int? _selectedOptionIndex;
+  bool _isAnswered = false;
+  int _correctCount = 0;
+  final Set<String> _strongTopics = {};
+  final Set<String> _focusTopics = {};
 
-  final List<String> _options = [
-    'A • x',
-    'B • 2x',
-    'C • x²',
-    'D • 2',
-  ];
+  // Countdown timer: 04:32 (272 seconds)
+  Timer? _countdownTimer;
+  int _secondsRemaining = 272;
+  bool _isFinishing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _questions = QuizQuestionBank.getQuestionsForSubject(widget.subject);
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        timer.cancel();
+        _finishQuiz();
+      }
+    });
+  }
+
+  String _formatTimer(int totalSeconds) {
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    final mStr = minutes.toString().padLeft(2, '0');
+    final sStr = seconds.toString().padLeft(2, '0');
+    return '$mStr:$sStr';
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onOptionTapped(int index) {
+    if (_isAnswered || _isFinishing) return;
+
+    final question = _questions[_currentQuestionIndex];
+    final isCorrect = (index == question.correctOptionIndex);
+
+    setState(() {
+      _selectedOptionIndex = index;
+      _isAnswered = true;
+      if (isCorrect) {
+        _correctCount++;
+        _strongTopics.add(question.topic);
+      } else {
+        _focusTopics.add(question.topic);
+      }
+    });
+
+    // Record topic performance into recommendation engine
+    RecommendationEngine.recordAnswer(
+      subject: widget.subject,
+      topic: question.topic,
+      isCorrect: isCorrect,
+    );
+  }
 
   void _showOwlHintDialog() {
+    final question = _questions[_currentQuestionIndex];
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -38,7 +112,8 @@ class _QuizScreenState extends State<QuizScreen> {
               AppAssets.owlThinking,
               width: 36,
               height: 36,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.school, color: AppColors.primary),
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.school, color: AppColors.accent),
             ),
             const SizedBox(width: 10),
             const Text(
@@ -47,9 +122,9 @@ class _QuizScreenState extends State<QuizScreen> {
             ),
           ],
         ),
-        content: const Text(
-          'Remember the power rule: d/dx [xⁿ] = n · xⁿ⁻¹.\nHere n = 2, so bring 2 to the front and reduce the power by 1.',
-          style: TextStyle(fontSize: 14, height: 1.4, color: AppColors.textDark),
+        content: Text(
+          'Topic: ${question.topic}\n\n${question.explanation}',
+          style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.textDark),
         ),
         actions: [
           TextButton(
@@ -61,43 +136,72 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
-  void _handleNext() async {
-    if (_currentQuestionIndex + 1 < _totalQuestions) {
+  void _handleNext() {
+    if (!_isAnswered) return;
+
+    if (_currentQuestionIndex + 1 < _questions.length) {
       setState(() {
         _currentQuestionIndex++;
-        _selectedAnswerIndex = null;
+        _selectedOptionIndex = null;
+        _isAnswered = false;
       });
     } else {
-      // Save quiz score
-      final user = SupabaseService.instance.currentUser;
-      if (user == null) {
-        await GuestScoreService.saveGuestScore(
-          subject: widget.subject,
-          score: 82,
-          grade: 'Grade B',
-        );
-      } else {
-        await GuestScoreService.saveGuestScore(
-          subject: widget.subject,
-          score: 82,
-          grade: 'Grade B',
-        );
-        await GuestScoreService.migrateGuestScoresToAccount(user.id);
-      }
-
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => QuizResultsScreen(subject: widget.subject),
-        ),
-      );
+      _finishQuiz();
     }
+  }
+
+  Future<void> _finishQuiz() async {
+    if (_isFinishing) return;
+    _isFinishing = true;
+    _countdownTimer?.cancel();
+
+    final total = _questions.isEmpty ? 10 : _questions.length;
+    final score = ((_correctCount / total) * 100).round();
+    final grade = QuizScreen.calculateGrade(score);
+
+    // Save completed quiz result (Phase 1 & Phase 2 contract)
+    final user = SupabaseService.instance.currentUser;
+    if (user == null) {
+      await GuestScoreService.saveGuestScore(
+        subject: widget.subject,
+        score: score,
+        grade: grade,
+      );
+    } else {
+      await GuestScoreService.saveGuestScore(
+        subject: widget.subject,
+        score: score,
+        grade: grade,
+      );
+      await GuestScoreService.migrateGuestScoresToAccount(user.id);
+    }
+
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuizResultsScreen(
+          subject: widget.subject,
+          score: score,
+          grade: grade,
+          strongTopics: _strongTopics.toList(),
+          focusTopics: _focusTopics.toList(),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final progress = (_currentQuestionIndex + 1) / _totalQuestions;
+    if (_questions.isEmpty) {
+      return const Scaffold(
+        body: Center(child: Text('No questions available.')),
+      );
+    }
+
+    final question = _questions[_currentQuestionIndex];
+    final progress = (_currentQuestionIndex + 1) / _questions.length;
+    final isLastQuestion = (_currentQuestionIndex + 1 == _questions.length);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -139,9 +243,10 @@ class _QuizScreenState extends State<QuizScreen> {
                       width: 46,
                       height: 46,
                       child: Image.asset(
-                        AppAssets.owlThinking,
+                        AppAssets.owlSitting,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.school, color: AppColors.accent),
                       ),
                     ),
                   ),
@@ -162,25 +267,33 @@ class _QuizScreenState extends State<QuizScreen> {
 
               const SizedBox(height: 12),
 
-              // Progress details & Timer
+              // Progress details & Countdown Timer
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Question ${_currentQuestionIndex + 1} of $_totalQuestions',
+                    'Question ${_currentQuestionIndex + 1} of ${_questions.length}',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const Text(
-                    '04:32',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(Icons.timer_outlined, size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatTimer(_secondsRemaining),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: _secondsRemaining <= 30
+                              ? AppColors.error
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -198,7 +311,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Question Card
               Container(
@@ -209,90 +322,181 @@ class _QuizScreenState extends State<QuizScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.border),
                 ),
-                child: const Text(
-                  'What is the derivative of x²?',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
-                    height: 1.4,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceMuted,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        question.topic,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      question.questionText,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
-              // Options List
-              ...List.generate(_options.length, (index) {
-                final isSelected = _selectedAnswerIndex == index;
+              // Options List with Instant Feedback (Figma frame 33)
+              ...List.generate(question.options.length, (index) {
+                final isSelected = (_selectedOptionIndex == index);
+                final isCorrectOption = (index == question.correctOptionIndex);
+
+                Color bgColor = Colors.white;
+                Color borderColor = AppColors.border;
+                Color textColor = AppColors.textDark;
+                Widget? trailingIcon;
+
+                if (_isAnswered) {
+                  if (isCorrectOption) {
+                    bgColor = AppColors.successLight;
+                    borderColor = AppColors.success;
+                    textColor = AppColors.textDark;
+                    trailingIcon = const Icon(Icons.check_circle, color: AppColors.success, size: 20);
+                  } else if (isSelected) {
+                    bgColor = AppColors.errorLight;
+                    borderColor = AppColors.error;
+                    textColor = AppColors.error;
+                    trailingIcon = const Icon(Icons.cancel, color: AppColors.error, size: 20);
+                  }
+                }
+
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedAnswerIndex = index;
-                      });
-                    },
+                    onTap: () => _onOptionTapped(index),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       width: double.infinity,
-                      height: 58,
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
-                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.accentLight : Colors.white,
+                        color: bgColor,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isSelected ? AppColors.accent : AppColors.border,
-                          width: isSelected ? 2.0 : 1.0,
+                          color: borderColor,
+                          width: (_isAnswered && (isCorrectOption || isSelected)) ? 2.0 : 1.0,
                         ),
                       ),
-                      child: Text(
-                        _options[index],
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                          color: AppColors.textDark,
-                        ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              question.options[index],
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: (isSelected || (_isAnswered && isCorrectOption))
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                                color: textColor,
+                              ),
+                            ),
+                          ),
+                          if (trailingIcon != null) trailingIcon,
+                        ],
                       ),
                     ),
                   ),
                 );
               }),
 
-              const SizedBox(height: 8),
-
-              // Clarification caption
-              const Center(
-                child: Text(
-                  'Tap an answer to continue. No distractions, one question at a time.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
+              // Correct/Wrong Explanation Banner (Figma frame 33)
+              if (_isAnswered) ...[
+                const SizedBox(height: 6),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: (_selectedOptionIndex == question.correctOptionIndex)
+                        ? AppColors.successLight
+                        : AppColors.errorLight,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: (_selectedOptionIndex == question.correctOptionIndex)
+                          ? AppColors.success.withOpacity(0.4)
+                          : AppColors.error.withOpacity(0.4),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            (_selectedOptionIndex == question.correctOptionIndex)
+                                ? Icons.check_circle
+                                : Icons.info_outline,
+                            size: 18,
+                            color: (_selectedOptionIndex == question.correctOptionIndex)
+                                ? AppColors.success
+                                : AppColors.error,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            (_selectedOptionIndex == question.correctOptionIndex)
+                                ? 'Correct!'
+                                : 'Incorrect',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: (_selectedOptionIndex == question.correctOptionIndex)
+                                  ? AppColors.success
+                                  : AppColors.error,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        question.explanation,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          height: 1.35,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
+              ],
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // Next question button
+              // Next question / Finish button
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.backgroundDark,
+                    backgroundColor: _isAnswered ? AppColors.backgroundDark : AppColors.border,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
                     elevation: 0,
                   ),
-                  onPressed: _handleNext,
-                  child: const Text(
-                    'Next question →',
-                    style: TextStyle(
+                  onPressed: _isAnswered ? _handleNext : null,
+                  child: Text(
+                    isLastQuestion ? 'Finish Quiz →' : 'Next question →',
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
