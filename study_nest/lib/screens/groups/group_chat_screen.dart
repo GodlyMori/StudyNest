@@ -111,7 +111,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           width: 32,
                           height: 32,
                           errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.school, color: AppColors.primary, size: 28),
+                              const Icon(Icons.school, color: AppColors.accent, size: 28),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -122,7 +122,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 msg['sender'] as String,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
+                                  color: AppColors.accent,
                                   fontSize: 13,
                                 ),
                               ),
@@ -150,7 +150,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                     decoration: BoxDecoration(
-                      color: isMe ? AppColors.primary : Colors.white,
+                      color: isMe ? AppColors.accent : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: isMe ? null : Border.all(color: AppColors.border),
                     ),
@@ -220,7 +220,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   const SizedBox(width: 8),
                   Container(
                     decoration: const BoxDecoration(
-                      color: AppColors.primary,
+                      color: AppColors.accent,
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(

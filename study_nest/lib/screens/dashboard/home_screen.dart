@@ -98,7 +98,7 @@ class HomeScreen extends StatelessWidget {
                       child: Container(
                         height: 38,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: AppColors.accent,
                           borderRadius: BorderRadius.circular(19),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -132,7 +132,7 @@ class HomeScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
-                            Icon(Icons.bolt, size: 18, color: AppColors.primary),
+                            Icon(Icons.bolt, size: 18, color: AppColors.accent),
                             SizedBox(width: 6),
                             Text(
                               '1,240 XP',
@@ -261,7 +261,7 @@ class HomeScreen extends StatelessWidget {
                                           width: 10,
                                           height: 10,
                                           decoration: const BoxDecoration(
-                                            color: AppColors.primary,
+                                            color: AppColors.accent,
                                             shape: BoxShape.circle,
                                           ),
                                         ),
@@ -402,7 +402,7 @@ class HomeScreen extends StatelessWidget {
                             'View all',
                             style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.primaryDark,
+                              color: AppColors.accentDark,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

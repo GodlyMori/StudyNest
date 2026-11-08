@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../services/supabase_service.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 import '../dashboard/main_navigation_screen.dart';
@@ -17,21 +19,59 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   String? _errorMessage;
+  bool _isLoading = false;
 
-  void _handleLogin() {
-    // If empty or test, allow test login
-    if (_passwordController.text.trim().isEmpty) {
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    // Empty password check (Figma frame 36 error state)
+    if (password.isEmpty) {
       setState(() {
         _errorMessage = 'Incorrect email or password. Try again.';
       });
       return;
     }
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-      (route) => false,
-    );
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      if (SupabaseService.instance.isInitialized) {
+        await SupabaseService.instance.signIn(
+          email: email,
+          password: password,
+        );
+      } else {
+        // If Supabase not connected yet, fail to prevent fake logins
+        throw const AuthException('Supabase is not initialized or invalid credentials');
+      }
+
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+        (route) => false,
+      );
+    } on AuthException catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Incorrect email or password. Try again.';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Incorrect email or password. Try again.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -49,10 +89,10 @@ class _LoginScreenState extends State<LoginScreen> {
         leadingWidth: 100,
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Padding(
-            padding: const EdgeInsets.only(left: 20.0),
+          child: const Padding(
+            padding: EdgeInsets.only(left: 20.0),
             child: Row(
-              children: const [
+              children: [
                 Icon(Icons.arrow_back, size: 18, color: AppColors.textSecondary),
                 SizedBox(width: 4),
                 Text(
@@ -89,10 +129,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'Welcome back',
                           style: TextStyle(
@@ -130,15 +170,20 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
+                onChanged: (_) {
+                  if (_errorMessage != null) {
+                    setState(() => _errorMessage = null);
+                  }
+                },
+                decoration: const InputDecoration(
                   hintText: 'you@example.com',
-                  prefixIcon: const Icon(Icons.mail_outline, size: 20, color: AppColors.textSecondary),
+                  prefixIcon: Icon(Icons.mail_outline, size: 20, color: AppColors.textSecondary),
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              // Password Field
+              // Password Field (Frame 36 Error State: red border outline when error occurs)
               const Text(
                 'Password',
                 style: TextStyle(
@@ -151,9 +196,28 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
+                onChanged: (_) {
+                  if (_errorMessage != null) {
+                    setState(() => _errorMessage = null);
+                  }
+                },
                 decoration: InputDecoration(
                   hintText: 'Enter your password',
                   prefixIcon: const Icon(Icons.lock_outline, size: 20, color: AppColors.textSecondary),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: _errorMessage != null ? AppColors.error : AppColors.border,
+                      width: _errorMessage != null ? 1.5 : 1.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: _errorMessage != null ? AppColors.error : AppColors.accent,
+                      width: 2.0,
+                    ),
+                  ),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -169,6 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
+              // Frame 36 Error Message Text
               if (_errorMessage != null) ...[
                 const SizedBox(height: 12),
                 Text(
@@ -208,27 +273,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 32),
 
-              // Log In Button
+              // Log In Button (Amber)
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: AppColors.accent,
                     foregroundColor: AppColors.textDark,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
                     elevation: 0,
                   ),
-                  onPressed: _handleLogin,
-                  child: const Text(
-                    'Log In',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  onPressed: _isLoading ? null : _handleLogin,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.textDark,
+                          ),
+                        )
+                      : const Text(
+                          'Log In',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
 

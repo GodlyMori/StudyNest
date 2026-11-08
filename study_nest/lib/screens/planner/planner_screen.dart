@@ -70,7 +70,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: AppColors.accent,
               foregroundColor: AppColors.textDark,
             ),
             onPressed: () {
@@ -152,7 +152,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         width: 42,
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primary : Colors.transparent,
+                          color: isSelected ? AppColors.accent : Colors.transparent,
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Column(
@@ -217,7 +217,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         ],
                       ),
                     ),
-                    const Icon(Icons.alarm_on, color: AppColors.primary, size: 28),
+                    const Icon(Icons.alarm_on, color: AppColors.accent, size: 28),
                   ],
                 ),
               ),
@@ -257,7 +257,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primaryDark,
+                                color: AppColors.accentDark,
                               ),
                             ),
                             Container(
@@ -308,7 +308,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 height: 54,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: AppColors.accent,
                     foregroundColor: AppColors.textDark,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),

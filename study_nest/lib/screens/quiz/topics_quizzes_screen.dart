@@ -74,7 +74,7 @@ class TopicsQuizzesScreen extends StatelessWidget {
                         width: 46,
                         height: 46,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: AppColors.accent,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(Icons.psychology, color: AppColors.textDark, size: 28),
@@ -234,16 +234,16 @@ class TopicsQuizzesScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
+                          color: AppColors.accentLight,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                          border: Border.all(color: AppColors.accent.withOpacity(0.3)),
                         ),
                         child: const Text(
                           'Start',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primaryDark,
+                            color: AppColors.accentDark,
                           ),
                         ),
                       ),

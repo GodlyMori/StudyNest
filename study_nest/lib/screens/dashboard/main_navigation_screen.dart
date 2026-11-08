@@ -98,7 +98,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               width: 20,
               height: 4,
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+                color: isSelected ? AppColors.accent : const Color(0xFFE2E8F0),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

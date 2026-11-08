@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../services/supabase_service.dart';
+import '../../services/guest_score_service.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import 'quiz_results_screen.dart';
 
@@ -59,13 +61,31 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
-  void _handleNext() {
+  void _handleNext() async {
     if (_currentQuestionIndex + 1 < _totalQuestions) {
       setState(() {
         _currentQuestionIndex++;
         _selectedAnswerIndex = null;
       });
     } else {
+      // Save quiz score
+      final user = SupabaseService.instance.currentUser;
+      if (user == null) {
+        await GuestScoreService.saveGuestScore(
+          subject: widget.subject,
+          score: 82,
+          grade: 'Grade B',
+        );
+      } else {
+        await GuestScoreService.saveGuestScore(
+          subject: widget.subject,
+          score: 82,
+          grade: 'Grade B',
+        );
+        await GuestScoreService.migrateGuestScoresToAccount(user.id);
+      }
+
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -174,7 +194,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   value: progress,
                   minHeight: 8,
                   backgroundColor: AppColors.border,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
                 ),
               ),
 
@@ -220,10 +240,10 @@ class _QuizScreenState extends State<QuizScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       alignment: Alignment.centerLeft,
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primaryLight : Colors.white,
+                        color: isSelected ? AppColors.accentLight : Colors.white,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isSelected ? AppColors.primary : AppColors.border,
+                          color: isSelected ? AppColors.accent : AppColors.border,
                           width: isSelected ? 2.0 : 1.0,
                         ),
                       ),
@@ -288,8 +308,8 @@ class _QuizScreenState extends State<QuizScreen> {
                 height: 54,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    backgroundColor: AppColors.primaryLight,
-                    side: BorderSide(color: AppColors.primary.withOpacity(0.4)),
+                    backgroundColor: AppColors.accentLight,
+                    side: BorderSide(color: AppColors.accent.withOpacity(0.4)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -298,7 +318,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Icon(Icons.lightbulb_outline, color: AppColors.primaryDark, size: 20),
+                      Icon(Icons.lightbulb_outline, color: AppColors.accentDark, size: 20),
                       SizedBox(width: 8),
                       Text(
                         'Ask Owl for a Hint',

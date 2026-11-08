@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary & Accent Colors
-  static const Color primary = Color(0xFFF59E0B); // Amber / Gold primary
-  static const Color primaryDark = Color(0xFFD97706);
-  static const Color primaryLight = Color(0xFFFFFBEB); // Amber tint for cards/answers
+  // Primary (Deep Slate Navy #1E293B) & Accent (Amber #F59E0B)
+  static const Color primary = Color(0xFF1E293B); // Deep Slate Navy
+  static const Color primaryDark = Color(0xFF0F172A);
+  static const Color accent = Color(0xFFF59E0B);  // Amber
+  static const Color accentDark = Color(0xFFD97706);
+  static const Color accentLight = Color(0xFFFFFBEB); // Amber tint for cards/answers
+
+  // Backward-compatibility alias
+  static const Color primaryLight = Color(0xFFFFFBEB);
 
   // Dark Auth & Owl Backgrounds
   static const Color backgroundDark = Color(0xFF1E293B); // Slate 800

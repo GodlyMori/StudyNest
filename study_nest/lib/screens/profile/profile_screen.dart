@@ -1,13 +1,89 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
+import '../../services/supabase_service.dart';
+import '../../services/guest_score_service.dart';
+import '../auth/welcome_screen.dart';
 import 'settings_screen.dart';
 import '../quiz/quiz_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Map<String, dynamic>? _profile;
+  List<Map<String, dynamic>> _quizScores = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileAndScores();
+  }
+
+  Future<void> _loadProfileAndScores() async {
+    final user = SupabaseService.instance.currentUser;
+    Map<String, dynamic>? profile;
+    if (user != null && SupabaseService.instance.isInitialized) {
+      try {
+        profile = await SupabaseService.instance.getProfile(user.id);
+      } catch (_) {}
+    }
+
+    final scores = await GuestScoreService.getScoresForUser(userId: user?.id);
+
+    if (mounted) {
+      setState(() {
+        _profile = profile;
+        _quizScores = scores;
+      });
+    }
+  }
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Log out of StudyNest?'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await SupabaseService.instance.signOut();
+              if (!mounted) return;
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                (route) => false,
+              );
+            },
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final user = SupabaseService.instance.currentUser;
+    final isGuest = user == null;
+    final displayName = _profile?['display_name'] ?? (isGuest ? 'Guest Student' : 'Alvin Legarbes');
+    final initials = _profile?['avatar_initials'] ?? (isGuest ? 'G' : 'AL');
+    final level = _profile?['level'] ?? (isGuest ? 1 : 6);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
@@ -34,7 +110,7 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                      );
+                      ).then((_) => _loadProfileAndScores());
                     },
                   ),
                 ],
@@ -53,10 +129,10 @@ class ProfileScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
-                      'A',
-                      style: TextStyle(
-                        fontSize: 28,
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -66,25 +142,25 @@ class ProfileScreen extends StatelessWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Alvin Legarbes',
-                          style: TextStyle(
+                          displayName,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          'Student • Level 6',
-                          style: TextStyle(
+                          isGuest ? 'Guest • Level $level' : 'Student • Level $level',
+                          style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.textSecondary,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
+                        const SizedBox(height: 4),
+                        const Text(
                           '5-Day Streak • 1,240 XP',
                           style: TextStyle(
                             fontSize: 13,
@@ -100,64 +176,9 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Weekly Summary Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'This week',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          '6 quizzes • 4h 20m studied',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.successLight,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        '+18%',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.success,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              // Progress by Subject
+              // Subject Mastery Header
               const Text(
-                'Progress by subject',
+                'Subject mastery',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -168,14 +189,14 @@ class ProfileScreen extends StatelessWidget {
 
               _buildSubjectProgress(
                 subject: 'Calculus',
-                percentage: 82,
+                percentage: 78,
                 barColor: AppColors.success,
               ),
               const SizedBox(height: 12),
               _buildSubjectProgress(
                 subject: 'Biology',
-                percentage: 64,
-                barColor: AppColors.warning,
+                percentage: 62,
+                barColor: AppColors.accent,
               ),
               const SizedBox(height: 12),
               _buildSubjectProgress(
@@ -197,19 +218,55 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 14),
 
-              _buildQuizHistoryItem(
-                context,
-                title: 'Calculus — Derivatives',
-                subtitle: 'Today • 82% • Grade B',
-              ),
-              const SizedBox(height: 12),
-              _buildQuizHistoryItem(
-                context,
-                title: 'Biology — Cell Structure',
-                subtitle: 'Yesterday • 74% • Grade C',
+              if (_quizScores.isNotEmpty)
+                ..._quizScores.reversed.map((s) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: _buildQuizHistoryItem(
+                        context,
+                        title: s['subject'] ?? 'Calculus',
+                        subtitle: 'Recent • ${s['score']}% • ${s['grade'] ?? 'Grade B'}',
+                      ),
+                    ))
+              else ...[
+                _buildQuizHistoryItem(
+                  context,
+                  title: 'Calculus — Derivatives',
+                  subtitle: 'Today • 82% • Grade B',
+                ),
+                const SizedBox(height: 12),
+                _buildQuizHistoryItem(
+                  context,
+                  title: 'Biology — Cell Structure',
+                  subtitle: 'Yesterday • 74% • Grade C',
+                ),
+              ],
+
+              const SizedBox(height: 32),
+
+              // Log Out Button (Figma Frame 09 Profile for Log Out)
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.error),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  onPressed: _confirmLogout,
+                  child: const Text(
+                    'Log Out',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.error,
+                    ),
+                  ),
+                ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -312,7 +369,7 @@ class ProfileScreen extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => QuizScreen(subject: title),
                 ),
-              );
+              ).then((_) => _loadProfileAndScores());
             },
             child: const Text(
               'Retake',

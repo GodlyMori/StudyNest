@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
+import '../../services/supabase_service.dart';
 import '../auth/welcome_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -17,13 +18,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _handleLogout() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Log out of StudyNest?'),
         content: const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -31,7 +32,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
-            onPressed: () {
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await SupabaseService.instance.signOut();
+              if (!mounted) return;
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const WelcomeScreen()),
@@ -208,7 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Switch(
             value: value,
-            activeColor: AppColors.primary,
+            activeColor: AppColors.accent,
             onChanged: onChanged,
           ),
         ],

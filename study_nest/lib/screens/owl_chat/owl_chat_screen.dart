@@ -139,7 +139,7 @@ class _OwlChatScreenState extends State<OwlChatScreen> {
                             maxWidth: MediaQuery.of(context).size.width * 0.8,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: AppColors.accent,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
@@ -235,7 +235,7 @@ class _OwlChatScreenState extends State<OwlChatScreen> {
                         width: 40,
                         height: 40,
                         decoration: const BoxDecoration(
-                          color: AppColors.primary,
+                          color: AppColors.accent,
                           shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,

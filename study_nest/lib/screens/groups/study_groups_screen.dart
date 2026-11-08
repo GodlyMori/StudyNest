@@ -34,7 +34,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: AppColors.accent,
               foregroundColor: AppColors.textDark,
             ),
             onPressed: () {
@@ -260,7 +260,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                 height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: AppColors.accent,
                     foregroundColor: AppColors.textDark,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
