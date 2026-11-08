@@ -61,10 +61,14 @@ class SupabaseService {
 
     final user = response.user;
     if (user != null) {
-      await createProfile(
-        userId: user.id,
-        displayName: displayName.trim(),
-      );
+      try {
+        await createProfile(
+          userId: user.id,
+          displayName: displayName.trim(),
+        );
+      } catch (e) {
+        debugPrint('Direct profile creation note (handled by trigger/policy): $e');
+      }
     }
 
     return response;
