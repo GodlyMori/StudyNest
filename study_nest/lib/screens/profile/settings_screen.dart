@@ -1,0 +1,245 @@
+import 'package:flutter/material.dart';
+import '../../constants/app_colors.dart';
+import '../auth/welcome_screen.dart';
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _pushNotifications = true;
+  bool _studyReminders = true;
+  bool _soundEffects = true;
+
+  void _handleLogout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Log out of StudyNest?'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                (route) => false,
+              );
+            },
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      appBar: AppBar(
+        title: const Text(
+          'Settings',
+          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark),
+        ),
+      ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          children: [
+            const Text(
+              'Preferences',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            _buildSwitchTile(
+              title: 'Push Notifications',
+              subtitle: 'Receive reminders for quiz goals and streaks',
+              value: _pushNotifications,
+              onChanged: (val) => setState(() => _pushNotifications = val),
+            ),
+            const SizedBox(height: 8),
+
+            _buildSwitchTile(
+              title: 'Study Reminders',
+              subtitle: 'Daily check-in alerts from Owl',
+              value: _studyReminders,
+              onChanged: (val) => setState(() => _studyReminders = val),
+            ),
+            const SizedBox(height: 8),
+
+            _buildSwitchTile(
+              title: 'Sound & Mascot Effects',
+              subtitle: 'Audio cues during assessments',
+              value: _soundEffects,
+              onChanged: (val) => setState(() => _soundEffects = val),
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Account & Security',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            _buildActionTile(
+              title: 'Edit Profile',
+              icon: Icons.person_outline,
+              onTap: () {},
+            ),
+            const SizedBox(height: 8),
+
+            _buildActionTile(
+              title: 'Change Password',
+              icon: Icons.lock_outline,
+              onTap: () {},
+            ),
+            const SizedBox(height: 8),
+
+            _buildActionTile(
+              title: 'Privacy & Terms',
+              icon: Icons.shield_outlined,
+              onTap: () {},
+            ),
+
+            const SizedBox(height: 32),
+
+            // Log Out Button
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.error),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                onPressed: _handleLogout,
+                child: const Text(
+                  'Log Out',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.error,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            Center(
+              child: Text(
+                'StudyNest v1.0.0 • Made with Flutter',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary.withOpacity(0.8),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            activeColor: AppColors.primary,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionTile({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: AppColors.textDark),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDark,
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+        onTap: onTap,
+      ),
+    );
+  }
+}
