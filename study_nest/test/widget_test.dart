@@ -733,8 +733,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
     await tester.pumpAndSettle();
 
-    // Partial search matches Maya Lin
-    expect(find.text('Maya Lin'), findsOneWidget);
+    // Partial search matches Maya Santos
+    expect(find.text('Maya Santos'), findsOneWidget);
 
     // Tap Invite button
     final inviteBtn = find.widgetWithText(ElevatedButton, 'Invite');
@@ -757,7 +757,7 @@ void main() {
     await tester.tap(find.widgetWithText(ElevatedButton, 'Clear search'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Maya Lin'), findsOneWidget);
+    expect(find.text('Maya Santos'), findsOneWidget);
   });
 
   testWidgets('Group Invites inbox lists pending invites, and Accept adds member while Decline removes invite', (WidgetTester tester) async {

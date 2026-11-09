@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../models/group_invite.dart';
@@ -13,11 +14,23 @@ class GroupInvitesScreen extends StatefulWidget {
 class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
   List<GroupInvite> _invites = [];
   bool _isLoading = true;
+  StreamSubscription<GroupInvite>? _inviteSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadInvites();
+    _inviteSubscription = GroupService.getInviteStream().listen((_) {
+      if (mounted) {
+        _loadInvites();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _inviteSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadInvites() async {

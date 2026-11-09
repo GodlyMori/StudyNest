@@ -10,13 +10,11 @@
 
 create table if not exists public.profiles (
     id uuid primary key references auth.users(id) on delete cascade,
-    name text not null default '',
-    email text,
-    level text default 'High School',
+    display_name text not null default '',
     subjects text[] default '{}',
-    avatar_url text,
-    created_at timestamptz default now(),
-    updated_at timestamptz default now()
+    level integer default 1,
+    avatar_initials text,
+    created_at timestamptz default now()
 );
 
 -- Trigger function to automatically create profile on registration
@@ -26,20 +24,29 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+    user_name text;
+    initials text;
 begin
-    insert into public.profiles (id, name, email, level, subjects)
+    user_name := coalesce(new.raw_user_meta_data->>'display_name', new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
+    initials := upper(substring(user_name from 1 for 1));
+    if initials is null or initials = '' then
+        initials := 'S';
+    end if;
+
+    insert into public.profiles (id, display_name, subjects, level, avatar_initials, created_at)
     values (
         new.id,
-        coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-        new.email,
-        'High School',
-        array['Calculus', 'Biology']
+        user_name,
+        array['Calculus', 'Biology'],
+        1,
+        initials,
+        now()
     )
     on conflict (id) do update
     set
-        name = excluded.name,
-        email = excluded.email,
-        updated_at = now();
+        display_name = excluded.display_name,
+        avatar_initials = excluded.avatar_initials;
     return new;
 end;
 $$;
@@ -54,7 +61,7 @@ create trigger on_auth_user_created
 alter table public.profiles enable row level security;
 
 -- Profiles RLS Policies:
--- Authenticated users can view profiles (for user search)
+-- Authenticated users can view profiles (for user search, returning display_name, subjects, level, avatar_initials)
 drop policy if exists "Authenticated users can search profiles" on public.profiles;
 create policy "Authenticated users can search profiles"
     on public.profiles

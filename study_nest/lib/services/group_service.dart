@@ -60,31 +60,25 @@ class GroupService {
     ),
   ];
 
-  // Seed default students for search
+  // Seed default students for search (Figma frame 22: Maya Santos, Jonas Reyes, Sofia Cruz)
   static final List<UserProfileSummary> defaultRegisteredUsers = [
     const UserProfileSummary(
       id: 'user_maya',
-      name: 'Maya Lin',
+      name: 'Maya Santos',
       subject: 'Calculus',
-      level: 'Grade 12',
+      level: 'Level 5',
     ),
     const UserProfileSummary(
-      id: 'user_lucas',
-      name: 'Lucas Vance',
+      id: 'user_jonas',
+      name: 'Jonas Reyes',
       subject: 'Biology',
-      level: 'Grade 11',
+      level: 'Level 4',
     ),
     const UserProfileSummary(
-      id: 'user_sarah',
-      name: 'Sarah Connor',
-      subject: 'Physics',
-      level: 'Grade 12',
-    ),
-    const UserProfileSummary(
-      id: 'user_david',
-      name: 'David Kim',
+      id: 'user_sofia',
+      name: 'Sofia Cruz',
       subject: 'History',
-      level: 'Grade 10',
+      level: 'Level 6',
     ),
   ];
 
@@ -239,7 +233,7 @@ class GroupService {
     };
   }
 
-  /// Search registered users by partial name (e.g. "May" -> "Maya Lin")
+  /// Search registered users by partial name (e.g. "May" -> "Maya Santos")
   static Future<List<UserProfileSummary>> searchUsers(String query) async {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return [];
@@ -249,8 +243,8 @@ class GroupService {
       try {
         final res = await SupabaseService.instance.client
             .from('profiles')
-            .select('id, name, level, subjects')
-            .ilike('name', '%$q%')
+            .select('id, display_name, subjects, level')
+            .ilike('display_name', '%$q%')
             .limit(20);
 
         if (res.isNotEmpty) {
@@ -315,6 +309,47 @@ class GroupService {
         debugPrint('Supabase inviteUser note: $e');
       }
     }
+  }
+
+  /// Subscribe to Realtime invites for current user or broadcast
+  static Stream<GroupInvite> getInviteStream({String? userId}) {
+    if (SupabaseService.instance.isInitialized) {
+      try {
+        final targetId = userId ?? SupabaseService.instance.currentUser?.id;
+        final channelName = targetId != null
+            ? 'public:group_invites:$targetId'
+            : 'public:group_invites:all';
+
+        SupabaseService.instance.client
+            .channel(channelName)
+            .onPostgresChanges(
+              event: PostgresChangeEvent.insert,
+              schema: 'public',
+              table: 'group_invites',
+              filter: targetId != null
+                  ? PostgresChangeFilter(
+                      type: PostgresChangeFilterType.eq,
+                      column: 'invitee_id',
+                      value: targetId,
+                    )
+                  : null,
+              callback: (payload) {
+                try {
+                  final newRecord = payload.newRecord;
+                  final invite = GroupInvite.fromJson(newRecord);
+                  _inviteStreamController.add(invite);
+                } catch (e) {
+                  debugPrint('Realtime invite payload parse note: $e');
+                }
+              },
+            )
+            .subscribe();
+      } catch (e) {
+        debugPrint('Realtime invite channel subscribe note: $e');
+      }
+    }
+
+    return _inviteStreamController.stream;
   }
 
   /// Get pending invites for current user
