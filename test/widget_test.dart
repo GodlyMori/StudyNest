@@ -1017,6 +1017,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.widget<Switch>(soundSwitch).value, false);
 
+    // Verify toggle persisted to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getBool('settings_sound_effects'), false);
+
+    // Also toggle Push Notifications off
+    final pushSwitch = find.byType(Switch).at(0);
+    expect(tester.widget<Switch>(pushSwitch).value, true);
+    await tester.tap(pushSwitch);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Switch>(pushSwitch).value, false);
+    expect(prefs.getBool('settings_push_notifications'), false);
+
+    // Reopen SettingsScreen to verify persisted state sticks
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SettingsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.widget<Switch>(find.byType(Switch).at(0)).value, false);
+    expect(tester.widget<Switch>(find.byType(Switch).at(2)).value, false);
+
+    // Turn Push Notifications back on
+    await tester.tap(find.byType(Switch).at(0));
+    await tester.pumpAndSettle();
+    expect(tester.widget<Switch>(find.byType(Switch).at(0)).value, true);
+    expect(prefs.getBool('settings_push_notifications'), true);
+
     // Action rows exist
     expect(find.text('Edit Profile'), findsOneWidget);
     expect(find.text('Change Password'), findsOneWidget);

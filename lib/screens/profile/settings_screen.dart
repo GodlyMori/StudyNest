@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/app_colors.dart';
 import '../../services/supabase_service.dart';
 import '../auth/welcome_screen.dart';
@@ -15,9 +16,48 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  static const String _keyPushNotifications = 'settings_push_notifications';
+  static const String _keyStudyReminders = 'settings_study_reminders';
+  static const String _keySoundEffects = 'settings_sound_effects';
+
   bool _pushNotifications = true;
   bool _studyReminders = true;
   bool _soundEffects = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _pushNotifications = prefs.getBool(_keyPushNotifications) ?? true;
+        _studyReminders = prefs.getBool(_keyStudyReminders) ?? true;
+        _soundEffects = prefs.getBool(_keySoundEffects) ?? true;
+      });
+    }
+  }
+
+  Future<void> _setPushNotifications(bool val) async {
+    setState(() => _pushNotifications = val);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyPushNotifications, val);
+  }
+
+  Future<void> _setStudyReminders(bool val) async {
+    setState(() => _studyReminders = val);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyStudyReminders, val);
+  }
+
+  Future<void> _setSoundEffects(bool val) async {
+    setState(() => _soundEffects = val);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keySoundEffects, val);
+  }
 
   void _handleLogout() {
     showDialog(
@@ -81,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Push Notifications',
               subtitle: 'Receive reminders for quiz goals and streaks',
               value: _pushNotifications,
-              onChanged: (val) => setState(() => _pushNotifications = val),
+              onChanged: _setPushNotifications,
             ),
             const SizedBox(height: 8),
 
@@ -89,7 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Study Reminders',
               subtitle: 'Daily check-in alerts from Owl',
               value: _studyReminders,
-              onChanged: (val) => setState(() => _studyReminders = val),
+              onChanged: _setStudyReminders,
             ),
             const SizedBox(height: 8),
 
@@ -97,7 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Sound & Mascot Effects',
               subtitle: 'Audio cues during assessments',
               value: _soundEffects,
-              onChanged: (val) => setState(() => _soundEffects = val),
+              onChanged: _setSoundEffects,
             ),
 
             const SizedBox(height: 24),
