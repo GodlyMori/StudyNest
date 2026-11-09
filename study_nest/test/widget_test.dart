@@ -6,6 +6,12 @@ import 'package:study_nest/data/study_materials.dart';
 import 'package:study_nest/main.dart';
 import 'package:study_nest/models/study_session.dart';
 import 'package:study_nest/screens/auth/login_screen.dart';
+import 'package:study_nest/screens/groups/create_group_screen.dart';
+import 'package:study_nest/screens/groups/find_users_screen.dart';
+import 'package:study_nest/screens/groups/group_chat_screen.dart';
+import 'package:study_nest/screens/groups/group_detail_screen.dart';
+import 'package:study_nest/screens/groups/group_invites_screen.dart';
+import 'package:study_nest/screens/groups/study_groups_screen.dart';
 import 'package:study_nest/screens/materials/material_detail_screen.dart';
 import 'package:study_nest/screens/materials/materials_screen.dart';
 import 'package:study_nest/screens/planner/add_study_session_screen.dart';
@@ -14,6 +20,7 @@ import 'package:study_nest/screens/planner/planner_screen.dart';
 import 'package:study_nest/screens/quiz/quiz_screen.dart';
 import 'package:study_nest/screens/recommendations/recommendations_hub_screen.dart';
 import 'package:study_nest/services/guest_score_service.dart';
+import 'package:study_nest/services/group_service.dart';
 import 'package:study_nest/services/material_download_service.dart';
 import 'package:study_nest/services/network_service.dart';
 import 'package:study_nest/services/notification_service.dart';
@@ -598,5 +605,230 @@ void main() {
 
     final updatedReminders = await NotificationService.getScheduledReminders();
     expect(updatedReminders.isEmpty, true);
+  });
+
+  // --- Phase 5 New Tests ---
+
+  testWidgets('Discover tab shows public groups distinct from My Groups, and joining one moves it to My Groups', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await GroupService.resetToDefaults();
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: StudyGroupsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 1. My Groups initially shows joined groups (Calculus Crew, Bio Study Squad)
+    expect(find.text('Calculus Crew'), findsWidgets);
+    expect(find.text('Bio Study Squad'), findsOneWidget);
+    // Discover groups must NOT be in My Groups
+    expect(find.text('History Buffs'), findsNothing);
+    expect(find.text('Physics Pioneers'), findsNothing);
+
+    // 2. Switch to Discover Tab
+    await tester.tap(find.text('Discover'));
+    await tester.pumpAndSettle();
+
+    // Discover tab shows public groups to join
+    expect(find.text('History Buffs'), findsOneWidget);
+    expect(find.text('Physics Pioneers'), findsOneWidget);
+    expect(find.text('Join'), findsNWidgets(2));
+
+    // 3. Tap "Join" on History Buffs
+    final joinButtons = find.widgetWithText(ElevatedButton, 'Join');
+    await tester.tap(joinButtons.first);
+    await tester.pumpAndSettle();
+
+    // 4. Switch back to My Groups tab
+    await tester.tap(find.text('My Groups'));
+    await tester.pumpAndSettle();
+
+    // History Buffs is now in My Groups!
+    expect(find.text('History Buffs'), findsOneWidget);
+
+    // Switch back to Discover tab - History Buffs is no longer available to join
+    await tester.tap(find.text('Discover'));
+    await tester.pumpAndSettle();
+    expect(find.text('History Buffs'), findsNothing);
+    expect(find.text('Physics Pioneers'), findsOneWidget);
+  });
+
+  testWidgets('Create Group is a real screen and saves the group, navigating to its Group Detail', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await GroupService.resetToDefaults();
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: StudyGroupsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap + Create Study Group
+    final createBtn = find.widgetWithText(ElevatedButton, '+ Create Study Group');
+    expect(createBtn, findsOneWidget);
+    await tester.ensureVisible(createBtn);
+    await tester.tap(createBtn);
+    await tester.pumpAndSettle();
+
+    // Verify it opened CreateGroupScreen as a full screen (not an AlertDialog)
+    expect(find.byType(CreateGroupScreen), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+
+    // Enter name & description
+    await tester.enterText(find.byType(TextField).first, 'Astronomy Club');
+    await tester.pumpAndSettle();
+
+    // Tap Create Group button
+    final submitBtn = find.widgetWithText(ElevatedButton, 'Create Group');
+    await tester.ensureVisible(submitBtn);
+    await tester.tap(submitBtn);
+    await tester.pumpAndSettle();
+
+    // Verify navigation directly to GroupDetailScreen for the new group
+    expect(find.byType(GroupDetailScreen), findsOneWidget);
+    expect(find.text('Astronomy Club'), findsWidgets);
+  });
+
+  testWidgets('Group Detail shows members, shared materials, and chat preview; tapping group card opens Group Detail', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await GroupService.resetToDefaults();
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: StudyGroupsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Tap Calculus Crew card
+    await tester.tap(find.text('Calculus Crew').first);
+    await tester.pumpAndSettle();
+
+    // Must open GroupDetailScreen, NOT GroupChatScreen directly
+    expect(find.byType(GroupDetailScreen), findsOneWidget);
+    expect(find.byType(GroupChatScreen), findsNothing);
+
+    // Verify sections per Figma frame 17
+    expect(find.textContaining('Members'), findsOneWidget);
+    expect(find.text('Maya Lin'), findsOneWidget);
+    expect(find.text('Shared Materials'), findsOneWidget);
+    expect(find.text('Chat Preview'), findsOneWidget);
+  });
+
+  testWidgets('Find Users searches names with debounce (May -> Maya) and nonsense query shows no-results state', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: FindUsersScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Type "May" in search input
+    await tester.enterText(find.byType(TextField), 'May');
+    // Debounce wait (~300ms)
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    // Partial search matches Maya Lin
+    expect(find.text('Maya Lin'), findsOneWidget);
+
+    // Tap Invite button
+    final inviteBtn = find.widgetWithText(ElevatedButton, 'Invite');
+    expect(inviteBtn, findsOneWidget);
+    await tester.tap(inviteBtn);
+    await tester.pumpAndSettle();
+
+    // Button updates to Invited
+    expect(find.text('Invited'), findsOneWidget);
+
+    // Type a nonsense name that matches nothing
+    await tester.enterText(find.byType(TextField), 'nonsensexyz999');
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No students match your search'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Clear search'), findsOneWidget);
+
+    // Tap Clear search restores list
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Clear search'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Maya Lin'), findsOneWidget);
+  });
+
+  testWidgets('Group Invites inbox lists pending invites, and Accept adds member while Decline removes invite', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await GroupService.resetToDefaults();
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GroupInvitesScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Initially shows pending invites
+    expect(find.text('Group Invites'), findsOneWidget);
+    expect(find.text('History Buffs'), findsOneWidget);
+    expect(find.text('Physics Pioneers'), findsOneWidget);
+
+    // Tap Accept on History Buffs
+    final acceptButtons = find.widgetWithText(ElevatedButton, 'Accept');
+    expect(acceptButtons, findsNWidgets(2));
+    await tester.tap(acceptButtons.first);
+    await tester.pumpAndSettle();
+
+    // Verify History Buffs is now joined
+    final myGroups = await GroupService.getMyGroups();
+    expect(myGroups.any((g) => g.name == 'History Buffs'), true);
+
+    // Tap Decline on remaining invite
+    final declineButton = find.widgetWithText(OutlinedButton, 'Decline');
+    expect(declineButton, findsOneWidget);
+    await tester.tap(declineButton);
+    await tester.pumpAndSettle();
+
+    // Empty state is now shown
+    expect(find.text('No pending invitations'), findsOneWidget);
+  });
+
+  testWidgets('Group Chat stores messages and shows them in the chat', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await GroupService.resetToDefaults();
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GroupChatScreen(
+          groupId: 'group_calc_crew',
+          groupName: 'Calculus Crew',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify group title and initial chat messages
+    expect(find.text('Calculus Crew'), findsOneWidget);
+    expect(find.text('Did anyone solve Q4 on the derivative of x²?'), findsOneWidget);
+
+    // Type a new message
+    await tester.enterText(find.byType(TextField), 'Hey team, let\'s practice limits next!');
+    await tester.pumpAndSettle();
+
+    // Tap send icon button
+    final sendButton = find.byIcon(Icons.arrow_upward);
+    expect(sendButton, findsOneWidget);
+    await tester.tap(sendButton);
+    await tester.pumpAndSettle();
+
+    // Message must appear in chat list
+    expect(find.text('Hey team, let\'s practice limits next!'), findsOneWidget);
+
+    // Verify message was stored in GroupService
+    final msgs = await GroupService.getGroupMessages('group_calc_crew');
+    expect(msgs.any((m) => m.content == 'Hey team, let\'s practice limits next!'), true);
   });
 }

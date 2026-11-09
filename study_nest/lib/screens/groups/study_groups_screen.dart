@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../models/study_group.dart';
+import '../../services/group_service.dart';
 import '../owl_chat/owl_chat_screen.dart';
+import 'create_group_screen.dart';
+import 'find_users_screen.dart';
 import 'group_chat_screen.dart';
+import 'group_detail_screen.dart';
+import 'group_invites_screen.dart';
 
 class StudyGroupsScreen extends StatefulWidget {
   const StudyGroupsScreen({super.key});
@@ -13,41 +19,85 @@ class StudyGroupsScreen extends StatefulWidget {
 
 class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
   int _selectedTab = 0; // 0: My Groups, 1: Discover
+  List<StudyGroup> _myGroups = [];
+  List<StudyGroup> _discoverGroups = [];
+  int _pendingInvitesCount = 0;
+  bool _isLoading = true;
 
-  void _showCreateGroupDialog() {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Create Study Group'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Group name (e.g. Physics Prep)',
-          ),
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final my = await GroupService.getMyGroups();
+    final disc = await GroupService.getDiscoverGroups();
+    final invites = await GroupService.getPendingInvites();
+
+    if (mounted) {
+      setState(() {
+        _myGroups = my;
+        _discoverGroups = disc;
+        _pendingInvitesCount = invites.length;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleJoin(StudyGroup group) async {
+    await GroupService.joinGroup(group.id);
+    await _loadData();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Joined "${group.name}"! Added to My Groups.'),
+          backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 2),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
-              foregroundColor: AppColors.textDark,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Created "${controller.text.isEmpty ? "New Group" : controller.text}"!')),
-              );
-            },
-            child: const Text('Create'),
-          ),
-        ],
+      );
+    }
+  }
+
+  void _openGroupDetail(StudyGroup group) async {
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GroupDetailScreen(group: group),
       ),
     );
+    if (updated == true) {
+      await _loadData();
+    }
+  }
+
+  void _openCreateGroup() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CreateGroupScreen(),
+      ),
+    );
+    await _loadData();
+  }
+
+  void _openFindUsers() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FindUsersScreen(),
+      ),
+    );
+  }
+
+  void _openInvites() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const GroupInvitesScreen(),
+      ),
+    );
+    await _loadData();
   }
 
   @override
@@ -94,7 +144,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
 
               const SizedBox(height: 16),
 
-              // Segment Tabs: My Groups / Discover
+              // Segment Tabs: My Groups / Discover (Figma frame 24)
               Row(
                 children: [
                   Expanded(
@@ -151,110 +201,242 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
 
               const SizedBox(height: 20),
 
-              // Group Card 1: Calculus Crew
-              _buildGroupCard(
-                title: 'Calculus Crew',
-                subtitle: '12 members • 3 online',
-                statusColor: AppColors.success,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const GroupChatScreen(groupName: 'Calculus Crew'),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              // Group Card 2: Bio Study Squad
-              _buildGroupCard(
-                title: 'Bio Study Squad',
-                subtitle: '8 members • 5 online',
-                statusColor: AppColors.warning,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const GroupChatScreen(groupName: 'Bio Study Squad'),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 20),
-
-              // Chat Preview Box
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const GroupChatScreen(groupName: 'Calculus Crew'),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
+              if (_isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40),
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Calculus Crew — Chat',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textDark,
+                )
+              // Tab 0: My Groups
+              else if (_selectedTab == 0) ...[
+                if (_myGroups.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      children: const [
+                        Icon(Icons.groups_outlined, size: 40, color: AppColors.textSecondary),
+                        SizedBox(height: 12),
+                        Text(
+                          'No study groups yet',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Maya: Did anyone solve Q4?',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Owl: Hint — try the chain rule',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Container(
-                        height: 38,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceMuted,
-                          borderRadius: BorderRadius.circular(19),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        child: const Text(
-                          'Message…',
+                        SizedBox(height: 4),
+                        Text(
+                          'Join a public group from Discover or create your own!',
                           style: TextStyle(
                             fontSize: 13,
                             color: AppColors.textSecondary,
                           ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ..._myGroups.map((group) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: _buildGroupCard(
+                        title: group.name,
+                        subtitle: '${group.memberCount} members • ${group.onlineCount} online',
+                        statusColor: AppColors.success,
+                        onTap: () => _openGroupDetail(group),
+                      ),
+                    );
+                  }),
+
+                const SizedBox(height: 16),
+
+                // Chat Preview Box for My Groups
+                if (_myGroups.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      final primaryGroup = _myGroups.first;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GroupChatScreen(
+                            groupId: primaryGroup.id,
+                            groupName: primaryGroup.name,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${_myGroups.first.name} — Chat',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Maya: Did anyone solve Q4?',
+                            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Owl: Hint — try the chain rule',
+                            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 14),
+                          Container(
+                            height: 38,
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceMuted,
+                              borderRadius: BorderRadius.circular(19),
+                            ),
+                            alignment: Alignment.centerLeft,
+                            child: const Text(
+                              'Message…',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ]
+              // Tab 1: Discover Groups (Figma frame 24)
+              else ...[
+                if (_discoverGroups.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      children: const [
+                        Icon(Icons.check_circle_outline, size: 40, color: AppColors.success),
+                        SizedBox(height: 12),
+                        Text(
+                          'You\'ve joined all public groups!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Check My Groups to chat and study with your classmates.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ..._discoverGroups.map((group) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.accent.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.groups,
+                                color: AppColors.accentDark,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    group.name,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    '${group.subject} • ${group.memberCount} members',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.accent,
+                                foregroundColor: AppColors.textDark,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              ),
+                              onPressed: () => _handleJoin(group),
+                              child: const Text(
+                                'Join',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    );
+                  }),
+              ],
 
               const SizedBox(height: 24),
 
-              // + Create Study Group Button (Primary Amber)
+              // + Create Study Group Button (Figma frame 16)
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -267,7 +449,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                     ),
                     elevation: 0,
                   ),
-                  onPressed: _showCreateGroupDialog,
+                  onPressed: _openCreateGroup,
                   child: const Text(
                     '+ Create Study Group',
                     style: TextStyle(
@@ -280,7 +462,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
 
               const SizedBox(height: 12),
 
-              // Find Users to Invite
+              // Find Users to Invite (Figma frames 22, 31, 32)
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -292,11 +474,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Opening user search...')),
-                    );
-                  },
+                  onPressed: _openFindUsers,
                   child: const Text(
                     'Find Users to Invite',
                     style: TextStyle(
@@ -310,7 +488,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
 
               const SizedBox(height: 12),
 
-              // View Invites (2)
+              // View Invites (Figma frame 23)
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -322,14 +500,10 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('2 invitations pending')),
-                    );
-                  },
-                  child: const Text(
-                    'View Invites (2)',
-                    style: TextStyle(
+                  onPressed: _openInvites,
+                  child: Text(
+                    'View Invites ($_pendingInvitesCount)',
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textDark,

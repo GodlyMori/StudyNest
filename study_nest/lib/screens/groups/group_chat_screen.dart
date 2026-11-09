@@ -1,11 +1,19 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../models/group_message.dart';
+import '../../services/group_service.dart';
 
 class GroupChatScreen extends StatefulWidget {
+  final String groupId;
   final String groupName;
 
-  const GroupChatScreen({super.key, this.groupName = 'Calculus Crew'});
+  const GroupChatScreen({
+    super.key,
+    this.groupId = 'group_calc_crew',
+    this.groupName = 'Calculus Crew',
+  });
 
   @override
   State<GroupChatScreen> createState() => _GroupChatScreenState();
@@ -13,50 +21,90 @@ class GroupChatScreen extends StatefulWidget {
 
 class _GroupChatScreenState extends State<GroupChatScreen> {
   final _messageController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'sender': 'Maya',
-      'text': 'Did anyone solve Q4 on the derivative of x²?',
-      'isMe': false,
-      'isOwl': false,
-      'time': '10:24 AM',
-    },
-    {
-      'sender': 'Owl (Study Buddy)',
-      'text': 'Hint: Use the power rule! Bring the exponent down: d/dx(x²) = 2x.',
-      'isMe': false,
-      'isOwl': true,
-      'time': '10:25 AM',
-    },
-    {
-      'sender': 'Lucas',
-      'text': 'Ah that makes sense now! Thanks Owl 🦉',
-      'isMe': false,
-      'isOwl': false,
-      'time': '10:27 AM',
-    },
-  ];
+  final ScrollController _scrollController = ScrollController();
+  List<GroupMessage> _messages = [];
+  StreamSubscription<GroupMessage>? _streamSubscription;
+  bool _isLoading = true;
 
-  void _sendMessage() {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
-
-    setState(() {
-      _messages.add({
-        'sender': 'You',
-        'text': text,
-        'isMe': true,
-        'isOwl': false,
-        'time': 'Just now',
-      });
-      _messageController.clear();
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialMessages();
+    _subscribeToRealtime();
   }
 
   @override
   void dispose() {
+    _streamSubscription?.cancel();
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadInitialMessages() async {
+    final msgs = await GroupService.getGroupMessages(widget.groupId);
+    if (mounted) {
+      setState(() {
+        _messages = msgs;
+        _isLoading = false;
+      });
+      _scrollToBottom();
+    }
+  }
+
+  void _subscribeToRealtime() {
+    final stream = GroupService.getMessageStream(widget.groupId);
+    _streamSubscription = stream.listen((newMsg) {
+      if (mounted) {
+        setState(() {
+          // Avoid duplicate by id
+          if (!_messages.any((m) => m.id == newMsg.id)) {
+            _messages.add(newMsg);
+          }
+        });
+        _scrollToBottom();
+      }
+    });
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+
+    _messageController.clear();
+
+    final sentMsg = await GroupService.sendMessage(
+      groupId: widget.groupId,
+      content: text,
+    );
+
+    if (mounted) {
+      setState(() {
+        if (!_messages.any((m) => m.id == sentMsg.id)) {
+          _messages.add(sentMsg);
+        }
+      });
+      _scrollToBottom();
+    }
+  }
+
+  String _formatTime(DateTime dt) {
+    final hour = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
+    final period = dt.hour >= 12 ? 'PM' : 'AM';
+    final minute = dt.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $period';
   }
 
   @override
@@ -64,134 +112,150 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               widget.groupName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark),
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
             ),
             const Text(
-              '12 members • 3 online',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              'Live Chat • Supabase Realtime',
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.success,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline, color: AppColors.textDark),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final isMe = msg['isMe'] as bool;
-                final isOwl = msg['isOwl'] as bool;
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = _messages[index];
+                      final isMe = msg.isMe;
+                      final isOwl = msg.isOwl;
 
-                if (isOwl) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceDark,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Image.asset(
-                          AppAssets.owlThinking,
-                          width: 32,
-                          height: 32,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.school, color: AppColors.accent, size: 28),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
+                      if (isOwl) {
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceDark,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Image.asset(
+                                AppAssets.owlThinking,
+                                width: 32,
+                                height: 32,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.school, color: AppColors.accent, size: 28),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      msg.senderName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.accent,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      msg.content,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return Align(
+                        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.75,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isMe ? AppColors.accent : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: isMe ? null : Border.all(color: AppColors.border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment:
+                                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                            children: [
+                              if (!isMe) ...[
+                                Text(
+                                  msg.senderName,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                              ],
                               Text(
-                                msg['sender'] as String,
+                                msg.content,
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.accent,
-                                  fontSize: 13,
+                                  fontSize: 14,
+                                  color: AppColors.textDark,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                msg['text'] as String,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  height: 1.3,
+                                _formatTime(msg.createdAt),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isMe
+                                      ? AppColors.textDark.withOpacity(0.65)
+                                      : AppColors.textSecondary,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                }
-
-                return Align(
-                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-                    decoration: BoxDecoration(
-                      color: isMe ? AppColors.accent : Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: isMe ? null : Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                      children: [
-                        if (!isMe) ...[
-                          Text(
-                            msg['sender'] as String,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textDark,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                        ],
-                        Text(
-                          msg['text'] as String,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isMe ? AppColors.textDark : AppColors.textDark,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          msg['time'] as String,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isMe ? AppColors.textDark.withOpacity(0.6) : AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
 
-          // Message input bar
+          // Message input bar with working send button
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
