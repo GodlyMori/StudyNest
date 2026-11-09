@@ -295,6 +295,14 @@ create policy "Group members can send messages"
         )
     );
 
+-- Users can delete their own sent messages
+drop policy if exists "Users can delete own messages" on public.group_messages;
+create policy "Users can delete own messages"
+    on public.group_messages
+    for delete
+    to authenticated
+    using (auth.uid() = sender_id);
+
 
 -- ------------------------------------------------------------------------------
 -- 7. Supabase Realtime Setup

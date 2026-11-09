@@ -159,6 +159,9 @@ class SupabaseService {
         await client.from('group_members').delete().eq('user_id', userId);
       } catch (_) {}
       try {
+        await client.from('group_messages').delete().eq('sender_id', userId);
+      } catch (_) {}
+      try {
         await client.from('group_invites').delete().eq('invitee_id', userId);
       } catch (_) {}
       try {
