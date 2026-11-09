@@ -112,6 +112,65 @@ class SupabaseService {
     );
   }
 
+  /// Update profile row for a given user id.
+  Future<void> updateProfile({
+    required String userId,
+    required String displayName,
+    List<String>? subjects,
+  }) async {
+    final initials = _extractInitials(displayName);
+    final data = <String, dynamic>{
+      'display_name': displayName.trim(),
+      'avatar_initials': initials,
+    };
+    if (subjects != null) {
+      data['subjects'] = subjects;
+    }
+    await client.from('profiles').update(data).eq('id', userId);
+  }
+
+  /// Change password for currently authenticated user.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final email = currentUser?.email;
+    if (email != null) {
+      // Verify current password by signing in
+      await client.auth.signInWithPassword(
+        email: email,
+        password: currentPassword,
+      );
+    }
+    // Update to new password
+    await client.auth.updateUser(
+      UserAttributes(password: newPassword),
+    );
+  }
+
+  /// Delete account data for a given user id.
+  /// Cleans up public schema tables before sign out.
+  Future<void> deleteAccount(String userId) async {
+    if (_initialized) {
+      try {
+        await client.from('quiz_scores').delete().eq('user_id', userId);
+      } catch (_) {}
+      try {
+        await client.from('group_members').delete().eq('user_id', userId);
+      } catch (_) {}
+      try {
+        await client.from('group_invites').delete().eq('invitee_id', userId);
+      } catch (_) {}
+      try {
+        await client.from('group_invites').delete().eq('inviter_id', userId);
+      } catch (_) {}
+      try {
+        await client.from('profiles').delete().eq('id', userId);
+      } catch (_) {}
+    }
+    await signOut();
+  }
+
   /// Send password reset link to user email.
   Future<void> resetPassword(String email) async {
     await client.auth.resetPasswordForEmail(email.trim());

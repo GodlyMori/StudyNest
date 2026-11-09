@@ -3,6 +3,8 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../models/study_group.dart';
 import '../../services/group_service.dart';
+import '../../services/network_service.dart';
+import '../../widgets/empty_state_view.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import 'create_group_screen.dart';
 import 'find_users_screen.dart';
@@ -23,6 +25,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
   List<StudyGroup> _discoverGroups = [];
   int _pendingInvitesCount = 0;
   bool _isLoading = true;
+  bool _isOffline = false;
 
   @override
   void initState() {
@@ -31,6 +34,18 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
   }
 
   Future<void> _loadData() async {
+    final online = await NetworkService.isOnline();
+    if (!online) {
+      if (mounted) {
+        setState(() {
+          _isOffline = true;
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+
+    _isOffline = false;
     final my = await GroupService.getMyGroups();
     final disc = await GroupService.getDiscoverGroups();
     final invites = await GroupService.getPendingInvites();
@@ -208,40 +223,30 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                     child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 )
+              else if (_isOffline)
+                EmptyStateView(
+                  icon: Icons.wifi_off_rounded,
+                  title: 'No Internet Connection',
+                  message:
+                      'Study groups need an active internet connection to load. Please check your connection and retry.',
+                  actionLabel: 'Retry',
+                  onAction: () {
+                    setState(() => _isLoading = true);
+                    _loadData();
+                  },
+                )
               // Tab 0: My Groups
               else if (_selectedTab == 0) ...[
                 if (_myGroups.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      children: const [
-                        Icon(Icons.groups_outlined, size: 40, color: AppColors.textSecondary),
-                        SizedBox(height: 12),
-                        Text(
-                          'No study groups yet',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Join a public group from Discover or create your own!',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
+                  EmptyStateView(
+                    icon: Icons.groups_outlined,
+                    title: 'No groups joined yet',
+                    message:
+                        'Join a public study group to share materials and chat with peers.',
+                    actionLabel: 'Discover Groups',
+                    onAction: () {
+                      setState(() => _selectedTab = 1);
+                    },
                   )
                 else
                   ..._myGroups.map((group) {

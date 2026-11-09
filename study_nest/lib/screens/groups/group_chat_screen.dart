@@ -4,6 +4,8 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../models/group_message.dart';
 import '../../services/group_service.dart';
+import '../../services/network_service.dart';
+import '../common/no_connection_screen.dart';
 
 class GroupChatScreen extends StatefulWidget {
   final String groupId;
@@ -82,6 +84,20 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
+
+    final isOnline = await NetworkService.isOnline();
+    if (!isOnline) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NoConnectionScreen(
+            onRetry: _sendMessage,
+          ),
+        ),
+      );
+      return;
+    }
 
     _messageController.clear();
 

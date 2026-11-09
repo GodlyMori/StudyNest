@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../services/network_service.dart';
 import '../../services/supabase_service.dart';
+import '../common/no_connection_screen.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 import '../dashboard/main_navigation_screen.dart';
@@ -30,6 +32,20 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _errorMessage = 'Incorrect email or password. Try again.';
       });
+      return;
+    }
+
+    final isOnline = await NetworkService.isOnline();
+    if (!isOnline) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NoConnectionScreen(
+            onRetry: _handleLogin,
+          ),
+        ),
+      );
       return;
     }
 

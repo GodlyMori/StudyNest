@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../services/notification_service.dart';
+import '../../widgets/empty_state_view.dart';
 
 class NotificationsListScreen extends StatefulWidget {
   const NotificationsListScreen({super.key});
@@ -72,40 +73,13 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(28.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              color: AppColors.border.withOpacity(0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.notifications_none_rounded,
-                              size: 44,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'No scheduled reminders',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textDark,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
+                      child: EmptyStateView(
+                        icon: Icons.notifications_none_rounded,
+                        title: 'No scheduled reminders',
+                        message:
                             'Turn on reminders when scheduling a study session to see them here.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                        actionLabel: 'Go to Planner',
+                        onAction: () => Navigator.pop(context),
                       ),
                     ),
                   )

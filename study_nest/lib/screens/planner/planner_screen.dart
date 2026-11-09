@@ -3,6 +3,7 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../models/study_session.dart';
 import '../../services/planner_service.dart';
+import '../../widgets/empty_state_view.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import 'add_study_session_screen.dart';
 import 'notifications_list_screen.dart';
@@ -257,43 +258,13 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   ),
                 )
               else if (_sessions.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.event_busy_rounded,
-                        size: 36,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No study sessions scheduled for ${_days[_selectedDayIndex]}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textDark,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Tap + Add Study Session below to schedule one.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+                EmptyStateView(
+                  icon: Icons.event_busy_rounded,
+                  title: 'No sessions for ${_days[_selectedDayIndex]}',
+                  message:
+                      'Plan your day by adding study sessions and setting reminders.',
+                  actionLabel: 'Add Study Session',
+                  onAction: _openAddSessionScreen,
                 )
               else
                 ..._sessions.map((session) {

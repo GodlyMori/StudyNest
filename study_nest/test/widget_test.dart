@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,6 +7,8 @@ import 'package:study_nest/data/study_materials.dart';
 import 'package:study_nest/main.dart';
 import 'package:study_nest/models/study_session.dart';
 import 'package:study_nest/screens/auth/login_screen.dart';
+import 'package:study_nest/screens/auth/welcome_screen.dart';
+import 'package:study_nest/screens/common/no_connection_screen.dart';
 import 'package:study_nest/screens/groups/create_group_screen.dart';
 import 'package:study_nest/screens/groups/find_users_screen.dart';
 import 'package:study_nest/screens/groups/group_chat_screen.dart';
@@ -17,8 +20,15 @@ import 'package:study_nest/screens/materials/materials_screen.dart';
 import 'package:study_nest/screens/planner/add_study_session_screen.dart';
 import 'package:study_nest/screens/planner/notifications_list_screen.dart';
 import 'package:study_nest/screens/planner/planner_screen.dart';
+import 'package:study_nest/screens/profile/change_password_screen.dart';
+import 'package:study_nest/screens/profile/delete_account_screen.dart';
+import 'package:study_nest/screens/profile/edit_profile_screen.dart';
+import 'package:study_nest/screens/profile/privacy_terms_screen.dart';
+import 'package:study_nest/screens/profile/profile_screen.dart';
+import 'package:study_nest/screens/profile/settings_screen.dart';
 import 'package:study_nest/screens/quiz/quiz_screen.dart';
 import 'package:study_nest/screens/recommendations/recommendations_hub_screen.dart';
+import 'package:study_nest/widgets/empty_state_view.dart';
 import 'package:study_nest/services/guest_score_service.dart';
 import 'package:study_nest/services/group_service.dart';
 import 'package:study_nest/services/material_download_service.dart';
@@ -832,5 +842,199 @@ void main() {
     // Verify message was stored in GroupService
     final msgs = await GroupService.getGroupMessages('group_calc_crew');
     expect(msgs.any((m) => m.content == 'Hey team, let\'s practice limits next!'), true);
+  });
+
+  // --- Phase 6 Tests ---
+  testWidgets('Editing the profile updates the displayed name', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: EditProfileScreen(
+          initialDisplayName: 'Alvin Legarbes',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify initial name
+    expect(find.text('Alvin Legarbes'), findsOneWidget);
+
+    // Enter new name
+    await tester.enterText(find.byType(TextField), 'Jordan Morales');
+    await tester.pumpAndSettle();
+
+    // Tap Save Changes
+    final saveBtn = find.widgetWithText(ElevatedButton, 'Save Changes');
+    expect(saveBtn, findsOneWidget);
+    await tester.tap(saveBtn);
+    await tester.pumpAndSettle();
+
+    // Verify stored in SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('user_display_name'), 'Jordan Morales');
+
+    // Verify ProfileScreen now loads and displays the new name
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ProfileScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Jordan Morales'), findsOneWidget);
+  });
+
+  testWidgets('Changing the password rejects mismatched passwords', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ChangePasswordScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final textFields = find.byType(TextField);
+    expect(textFields, findsNWidgets(3));
+
+    // Enter current password
+    await tester.enterText(textFields.at(0), 'OldPass123');
+    // Enter new password
+    await tester.enterText(textFields.at(1), 'NewPass123');
+    // Enter mismatched confirm password
+    await tester.enterText(textFields.at(2), 'Different456');
+    await tester.pumpAndSettle();
+
+    // Tap Update Password
+    final updateBtn = find.widgetWithText(ElevatedButton, 'Update Password');
+    await tester.tap(updateBtn);
+    await tester.pumpAndSettle();
+
+    // Validation error must be shown
+    expect(find.text('New passwords do not match.'), findsOneWidget);
+  });
+
+  testWidgets('Deleting the account clears local data and signs out', (WidgetTester tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_display_name', 'Student User');
+    await prefs.setString('test_score_key', '100%');
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: DeleteAccountScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify screen content states what is deleted
+    expect(find.text('Delete Your Account?'), findsOneWidget);
+    expect(find.textContaining('Profile info'), findsOneWidget);
+
+    // Tap Permanently Delete Account
+    final deleteBtn = find.widgetWithText(ElevatedButton, 'Permanently Delete Account');
+    expect(deleteBtn, findsOneWidget);
+    await tester.tap(deleteBtn);
+    await tester.pumpAndSettle();
+
+    // Verify local data is cleared
+    expect(prefs.getString('user_display_name'), isNull);
+    expect(prefs.getString('test_score_key'), isNull);
+
+    // Verify navigates to WelcomeScreen
+    expect(find.byType(WelcomeScreen), findsOneWidget);
+  });
+
+  testWidgets('An empty My Groups list shows the empty state', (WidgetTester tester) async {
+    final unjoined = GroupService.defaultGroups.map((g) => g.copyWith(isJoined: false)).toList();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('studynest_all_groups', jsonEncode(unjoined.map((g) => g.toJson()).toList()));
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: StudyGroupsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // My Groups tab is active by default; empty state must be shown
+    expect(find.byType(EmptyStateView), findsOneWidget);
+    expect(find.text('No groups joined yet'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Discover Groups'), findsOneWidget);
+
+    // Tapping action button switches to Discover tab
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Discover Groups'));
+    await tester.pumpAndSettle();
+
+    // Discover tab shows public groups to join
+    expect(find.text('Join'), findsWidgets);
+  });
+
+  testWidgets('Turning the network off shows the No Connection screen with Retry', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    NetworkService.mockIsOnline = false;
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: LoginScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final textFields = find.byType(TextField);
+    await tester.enterText(textFields.at(0), 'test@example.com');
+    await tester.enterText(textFields.at(1), 'password123');
+    await tester.pumpAndSettle();
+
+    final loginBtn = find.widgetWithText(ElevatedButton, 'Log In');
+    await tester.tap(loginBtn);
+    await tester.pumpAndSettle();
+
+    // Must show NoConnectionScreen
+    expect(find.byType(NoConnectionScreen), findsOneWidget);
+    expect(find.text('No Internet Connection'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Retry'), findsOneWidget);
+
+    // Reset mock
+    NetworkService.mockIsOnline = null;
+  });
+
+  testWidgets('Settings screen rows navigate properly and Sound & Mascot Effects toggle works', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SettingsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Toggles exist and are enabled
+    expect(find.text('Sound & Mascot Effects'), findsOneWidget);
+    expect(find.text('Push Notifications'), findsOneWidget);
+    expect(find.text('Study Reminders'), findsOneWidget);
+
+    // Tap Sound & Mascot Effects switch
+    final soundSwitch = find.byType(Switch).at(2);
+    expect(tester.widget<Switch>(soundSwitch).value, true);
+    await tester.tap(soundSwitch);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Switch>(soundSwitch).value, false);
+
+    // Action rows exist
+    expect(find.text('Edit Profile'), findsOneWidget);
+    expect(find.text('Change Password'), findsOneWidget);
+    expect(find.text('Privacy & Terms'), findsOneWidget);
+
+    // Scroll down to reveal Delete Account
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete Account'), findsOneWidget);
+
+    // Tap Privacy & Terms row opens PrivacyTermsScreen
+    // Scroll back up
+    await tester.drag(find.byType(ListView), const Offset(0, 300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Privacy & Terms'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PrivacyTermsScreen), findsOneWidget);
+    expect(find.text('Version 1.0.0 • Production Build'), findsOneWidget);
   });
 }

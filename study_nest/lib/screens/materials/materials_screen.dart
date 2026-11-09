@@ -4,6 +4,7 @@ import '../../constants/app_assets.dart';
 import '../../data/study_materials.dart';
 import '../../models/study_material.dart';
 import '../../services/material_download_service.dart';
+import '../../widgets/empty_state_view.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import 'material_detail_screen.dart';
 
@@ -101,9 +102,10 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedCategory = _categories[_selectedCategoryIndex];
     final filteredMaterials = _materials.where((m) {
       final matchesCategory = _selectedCategoryIndex == 0 ||
-          m.category == _categories[_selectedCategoryIndex];
+          m.category == selectedCategory;
       final matchesSearch = _matchesQuery(m, _searchQuery);
       return matchesCategory && matchesSearch;
     }).toList();
@@ -269,65 +271,26 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                   ),
                 )
               else if (filteredMaterials.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 40,
-                      horizontal: 20,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.border.withOpacity(0.3),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.search_off_rounded,
-                            size: 40,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No materials match your search',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Try adjusting your search query or switching categories.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _clearSearch,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                          ),
-                          child: const Text('Clear search'),
-                        ),
-                      ],
-                    ),
-                  ),
+                EmptyStateView(
+                  icon: selectedCategory == 'Downloaded'
+                      ? Icons.download_done_outlined
+                      : Icons.search_off_rounded,
+                  title: selectedCategory == 'Downloaded'
+                      ? 'No downloaded materials'
+                      : 'No materials match your search',
+                  message: selectedCategory == 'Downloaded'
+                      ? 'Download materials to study offline without an internet connection.'
+                      : 'Try adjusting your search query or switching categories.',
+                  actionLabel: selectedCategory == 'Downloaded'
+                      ? 'Browse Materials'
+                      : 'Clear search',
+                  onAction: () {
+                    if (selectedCategory == 'Downloaded') {
+                      setState(() => _selectedCategoryIndex = 0);
+                    } else {
+                      _clearSearch();
+                    }
+                  },
                 )
               else
                 ...filteredMaterials.map((material) {

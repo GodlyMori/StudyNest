@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/app_colors.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
+import '../../widgets/empty_state_view.dart';
 import '../auth/welcome_screen.dart';
 import 'settings_screen.dart';
 import '../quiz/quiz_screen.dart';
+import '../quiz/topics_quizzes_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,6 +33,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       try {
         profile = await SupabaseService.instance.getProfile(user.id);
       } catch (_) {}
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final localName = prefs.getString('user_display_name');
+    if (localName != null && localName.isNotEmpty) {
+      final parts = localName.trim().split(RegExp(r'\s+'));
+      final initials = parts.length == 1
+          ? parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase()
+          : '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+      profile = {
+        ...?profile,
+        'display_name': localName,
+        'avatar_initials': initials,
+      };
     }
 
     final scores = await GuestScoreService.getScoresForUser(userId: user?.id);
@@ -227,19 +244,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         subtitle: 'Recent • ${s['score']}% • ${s['grade'] ?? 'Grade B'}',
                       ),
                     ))
-              else ...[
-                _buildQuizHistoryItem(
-                  context,
-                  title: 'Calculus — Derivatives',
-                  subtitle: 'Today • 82% • Grade B',
+              else
+                EmptyStateView(
+                  icon: Icons.quiz_outlined,
+                  title: 'No quiz history yet',
+                  message: 'Complete your first quiz to track your scores, mastery, and streaks.',
+                  actionLabel: 'Take a Quiz',
+                  onAction: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const TopicsQuizzesScreen()),
+                    );
+                  },
                 ),
-                const SizedBox(height: 12),
-                _buildQuizHistoryItem(
-                  context,
-                  title: 'Biology — Cell Structure',
-                  subtitle: 'Yesterday • 74% • Grade C',
-                ),
-              ],
 
               const SizedBox(height: 32),
 

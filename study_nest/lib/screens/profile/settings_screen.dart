@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../services/supabase_service.dart';
 import '../auth/welcome_screen.dart';
+import 'edit_profile_screen.dart';
+import 'change_password_screen.dart';
+import 'delete_account_screen.dart';
+import 'privacy_terms_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -111,21 +115,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildActionTile(
               title: 'Edit Profile',
               icon: Icons.person_outline,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                );
+              },
             ),
             const SizedBox(height: 8),
 
             _buildActionTile(
               title: 'Change Password',
               icon: Icons.lock_outline,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
+                );
+              },
             ),
             const SizedBox(height: 8),
 
             _buildActionTile(
               title: 'Privacy & Terms',
               icon: Icons.shield_outlined,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PrivacyTermsScreen()),
+                );
+              },
             ),
 
             const SizedBox(height: 32),
@@ -150,6 +169,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: AppColors.error,
                   ),
                 ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Delete Account Button (Figma frame 45, below Log Out)
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: TextButton.icon(
+                icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                label: const Text(
+                  'Delete Account',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.error,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DeleteAccountScreen()),
+                  );
+                },
               ),
             ),
 
