@@ -131,6 +131,15 @@ create table if not exists public.groups (
     created_at timestamptz default now()
 );
 
+create table if not exists public.group_members (
+    id uuid primary key default gen_random_uuid(),
+    group_id uuid not null references public.groups(id) on delete cascade,
+    user_id uuid not null references auth.users(id) on delete cascade,
+    role text default 'member', -- 'admin', 'member'
+    joined_at timestamptz default now(),
+    unique(group_id, user_id)
+);
+
 alter table public.groups enable row level security;
 
 -- Groups RLS Policies:
@@ -161,15 +170,6 @@ create policy "Users can create study groups"
 -- ------------------------------------------------------------------------------
 -- 4. Phase 5 Setup: Group Members Table
 -- ------------------------------------------------------------------------------
-
-create table if not exists public.group_members (
-    id uuid primary key default gen_random_uuid(),
-    group_id uuid not null references public.groups(id) on delete cascade,
-    user_id uuid not null references auth.users(id) on delete cascade,
-    role text default 'member', -- 'admin', 'member'
-    joined_at timestamptz default now(),
-    unique(group_id, user_id)
-);
 
 alter table public.group_members enable row level security;
 
