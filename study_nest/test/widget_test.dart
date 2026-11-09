@@ -713,7 +713,9 @@ void main() {
 
     // Verify sections per Figma frame 17
     expect(find.textContaining('Members'), findsOneWidget);
-    expect(find.text('Maya Lin'), findsOneWidget);
+    expect(find.text('Maya Santos'), findsOneWidget);
+    expect(find.text('Jonas Reyes'), findsOneWidget);
+    expect(find.text('Sofia Cruz'), findsOneWidget);
     expect(find.text('Shared Materials'), findsOneWidget);
     expect(find.text('Chat Preview'), findsOneWidget);
   });
@@ -771,20 +773,20 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Initially shows pending invites
+    // Initially shows pending invites (frame 23: Calculus Crew from Maya Santos, Bio Study Squad from Jonas Reyes)
     expect(find.text('Group Invites'), findsOneWidget);
-    expect(find.text('History Buffs'), findsOneWidget);
-    expect(find.text('Physics Pioneers'), findsOneWidget);
+    expect(find.text('Calculus Crew'), findsOneWidget);
+    expect(find.text('Bio Study Squad'), findsOneWidget);
 
-    // Tap Accept on History Buffs
+    // Tap Accept on Calculus Crew
     final acceptButtons = find.widgetWithText(ElevatedButton, 'Accept');
     expect(acceptButtons, findsNWidgets(2));
     await tester.tap(acceptButtons.first);
     await tester.pumpAndSettle();
 
-    // Verify History Buffs is now joined
+    // Verify Calculus Crew is joined
     final myGroups = await GroupService.getMyGroups();
-    expect(myGroups.any((g) => g.name == 'History Buffs'), true);
+    expect(myGroups.any((g) => g.name == 'Calculus Crew'), true);
 
     // Tap Decline on remaining invite
     final declineButton = find.widgetWithText(OutlinedButton, 'Decline');

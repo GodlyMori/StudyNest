@@ -199,27 +199,27 @@ class GroupService {
       orElse: () => StudyGroup(id: groupId, name: 'Study Group', subject: 'General'),
     );
 
-    // Default members for display
+    // Default members for display (Figma seed users: Maya Santos, Jonas Reyes, Sofia Cruz)
     final members = [
       const GroupMember(
         id: 'm1',
         groupId: 'group_calc_crew',
         userId: 'u1',
-        name: 'Maya Lin',
+        name: 'Maya Santos',
         role: 'Admin',
       ),
       const GroupMember(
         id: 'm2',
         groupId: 'group_calc_crew',
         userId: 'u2',
-        name: 'Lucas Vance',
+        name: 'Jonas Reyes',
         role: 'Member',
       ),
       const GroupMember(
         id: 'm3',
         groupId: 'group_calc_crew',
         userId: 'u3',
-        name: 'Sarah Connor',
+        name: 'Sofia Cruz',
         role: 'Member',
       ),
     ];
@@ -359,24 +359,25 @@ class GroupService {
     List<GroupInvite> result = [];
 
     if (data == null) {
-      // Seed 2 default invites matching Figma frame 23 ("View Invites (2)")
+      // Seed 2 default invites matching Figma frame 23:
+      // Calculus Crew from Maya Santos, and Bio Study Squad from Jonas Reyes
       result = [
         GroupInvite(
           id: 'inv_default_1',
-          groupId: 'group_history_buffs',
-          groupName: 'History Buffs',
-          inviterId: 'user_david',
-          inviterName: 'David Kim',
+          groupId: 'group_calc_crew',
+          groupName: 'Calculus Crew',
+          inviterId: 'user_maya',
+          inviterName: 'Maya Santos',
           inviteeId: 'current_user',
           status: 'pending',
           createdAt: DateTime.now().subtract(const Duration(hours: 2)),
         ),
         GroupInvite(
           id: 'inv_default_2',
-          groupId: 'group_physics_pioneers',
-          groupName: 'Physics Pioneers',
-          inviterId: 'user_sarah',
-          inviterName: 'Sarah Connor',
+          groupId: 'group_bio_squad',
+          groupName: 'Bio Study Squad',
+          inviterId: 'user_jonas',
+          inviterName: 'Jonas Reyes',
           inviteeId: 'current_user',
           status: 'pending',
           createdAt: DateTime.now().subtract(const Duration(hours: 5)),
