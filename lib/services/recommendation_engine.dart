@@ -5,6 +5,7 @@ import '../ml/bkt_mastery.dart';
 import '../ml/question_attempt.dart';
 import 'attempt_sync_service.dart';
 import 'mastery_service.dart';
+import 'supabase_service.dart';
 
 class RecommendationItem {
   final String topic;
@@ -141,7 +142,7 @@ class RecommendationEngine {
     if (useBktMastery) {
       final masteries = await MasteryService.loadOrRebuildMasteries();
       if (masteries.isNotEmpty) {
-        return _rankByBktMastery(masteries);
+        return rankByBktMastery(masteries);
       }
     }
     return _getRulesRankedRecommendations();
@@ -170,10 +171,15 @@ class RecommendationEngine {
     return 'Mastery $pct%, $total of your last $total $qWord correct';
   }
 
-  static Future<List<RecommendationItem>> _rankByBktMastery(
-    Map<String, TopicMastery> masteries,
-  ) async {
-    final attempts = await AttemptSyncService.logger.getAttempts();
+  @visibleForTesting
+  static Future<List<RecommendationItem>> rankByBktMastery(
+    Map<String, TopicMastery> masteries, {
+    String? userId,
+  }) async {
+    final currentUserId = userId ?? SupabaseService.instance.currentUser?.id;
+    final attempts = await AttemptSyncService.logger.getAttempts(
+      userId: currentUserId,
+    );
     final wrongCounts = <String, int>{};
     final attemptsByTopic = <String, List<QuestionAttempt>>{};
     for (final a in attempts) {
