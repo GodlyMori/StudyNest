@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ml/bkt_mastery.dart';
+import '../ml/question_attempt.dart';
 import 'attempt_sync_service.dart';
 import 'mastery_service.dart';
 
@@ -13,6 +14,7 @@ class RecommendationItem {
   final int wrongCount;
   final DateTime lastAttempt;
   final double? mastery;
+  final String? reason;
 
   const RecommendationItem({
     required this.topic,
@@ -22,6 +24,7 @@ class RecommendationItem {
     required this.wrongCount,
     required this.lastAttempt,
     this.mastery,
+    this.reason,
   });
 
   Map<String, dynamic> toJson() => {
@@ -32,6 +35,7 @@ class RecommendationItem {
         'wrongCount': wrongCount,
         'lastAttempt': lastAttempt.toIso8601String(),
         if (mastery != null) 'mastery': mastery,
+        if (reason != null) 'reason': reason,
       };
 
   factory RecommendationItem.fromJson(Map<String, dynamic> json) =>
@@ -45,6 +49,7 @@ class RecommendationItem {
             ? DateTime.parse(json['lastAttempt'] as String)
             : DateTime.now(),
         mastery: (json['mastery'] as num?)?.toDouble(),
+        reason: json['reason'] as String?,
       );
 }
 
@@ -142,14 +147,39 @@ class RecommendationEngine {
     return _getRulesRankedRecommendations();
   }
 
+  static String buildMasteryReason(
+    double mastery,
+    List<QuestionAttempt> topicAttempts, {
+    int recentWindow = 5,
+  }) {
+    final pct = (mastery.clamp(0.0, 1.0) * 100).round();
+    if (topicAttempts.isEmpty) {
+      return 'Mastery $pct%, no recent attempts yet';
+    }
+    final sorted = List<QuestionAttempt>.from(topicAttempts)
+      ..sort((a, b) => a.answeredAt.compareTo(b.answeredAt));
+    final recent = sorted.length <= recentWindow
+        ? sorted
+        : sorted.sublist(sorted.length - recentWindow);
+    final missed = recent.where((a) => !a.correct).length;
+    final total = recent.length;
+    final qWord = total == 1 ? 'question' : 'questions';
+    if (missed > 0) {
+      return 'Mastery $pct%, missed $missed of your last $total $qWord';
+    }
+    return 'Mastery $pct%, $total of your last $total $qWord correct';
+  }
+
   static Future<List<RecommendationItem>> _rankByBktMastery(
     Map<String, TopicMastery> masteries,
   ) async {
     final attempts = await AttemptSyncService.logger.getAttempts();
     final wrongCounts = <String, int>{};
+    final attemptsByTopic = <String, List<QuestionAttempt>>{};
     for (final a in attempts) {
+      final key = TopicMastery.topicKey(a.subject, a.topic);
+      attemptsByTopic.putIfAbsent(key, () => []).add(a);
       if (!a.correct) {
-        final key = TopicMastery.topicKey(a.subject, a.topic);
         wrongCounts[key] = (wrongCounts[key] ?? 0) + 1;
       }
     }
@@ -163,6 +193,7 @@ class RecommendationEngine {
 
     return sorted.map((m) {
       final key = TopicMastery.topicKey(m.subject, m.topic);
+      final topicAttempts = attemptsByTopic[key] ?? const [];
       return RecommendationItem(
         topic: m.topic,
         subject: m.subject,
@@ -171,6 +202,7 @@ class RecommendationEngine {
         wrongCount: wrongCounts[key] ?? 0,
         lastAttempt: m.updatedAt,
         mastery: m.mastery,
+        reason: buildMasteryReason(m.mastery, topicAttempts),
       );
     }).toList();
   }

@@ -226,6 +226,18 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
                     ],
                   ],
                 ),
+                if (item.reason != null && item.reason!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    item.reason!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
