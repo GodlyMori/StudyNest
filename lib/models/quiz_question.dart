@@ -6,6 +6,8 @@ class QuizQuestion {
   final List<String> options;
   final int correctOptionIndex;
   final String explanation;
+  /// Difficulty level: 1 = easy, 2 = medium, 3 = hard.
+  final int difficulty;
 
   const QuizQuestion({
     required this.id,
@@ -15,5 +17,6 @@ class QuizQuestion {
     required this.options,
     required this.correctOptionIndex,
     required this.explanation,
-  });
+    this.difficulty = 1,
+  }) : assert(difficulty >= 1 && difficulty <= 3);
 }

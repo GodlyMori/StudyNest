@@ -10,6 +10,7 @@ class QuizQuestionBank {
       options: ['2x', 'x', 'x³ / 3', '2'],
       correctOptionIndex: 0,
       explanation: 'Using the power rule: d/dx [xⁿ] = n · xⁿ⁻¹, so d/dx [x²] = 2x.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'calc_2',
@@ -19,6 +20,7 @@ class QuizQuestionBank {
       options: ['0', '1', 'Infinity', 'Undefined'],
       correctOptionIndex: 1,
       explanation: 'The fundamental trigonometric limit establishes that lim(x→0) sin(x)/x = 1.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'calc_3',
@@ -28,6 +30,7 @@ class QuizQuestionBank {
       options: ['cos(x)', '-cos(x)', 'tan(x)', 'sec²(x)'],
       correctOptionIndex: 0,
       explanation: 'The standard derivative of sine is cos(x).',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'calc_4',
@@ -37,6 +40,7 @@ class QuizQuestionBank {
       options: ['ln|x| + C', 'eˣ + C', '-1/x² + C', 'x + C'],
       correctOptionIndex: 0,
       explanation: 'The antiderivative of 1/x is the natural logarithm ln|x| + C.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'calc_5',
@@ -46,6 +50,7 @@ class QuizQuestionBank {
       options: ['2e^(2x)', 'e^(2x)', 'e^x', '2e^x'],
       correctOptionIndex: 0,
       explanation: 'By the chain rule: d/dx [e^(2x)] = e^(2x) · d/dx[2x] = 2e^(2x).',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'calc_6',
@@ -55,6 +60,7 @@ class QuizQuestionBank {
       options: ['1/x', 'x', 'eˣ', '1/x²'],
       correctOptionIndex: 0,
       explanation: 'The derivative of natural logarithm ln(x) for x > 0 is 1/x.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'calc_7',
@@ -64,6 +70,7 @@ class QuizQuestionBank {
       options: ['sin(x) + C', '-sin(x) + C', 'cos(x) + C', '-cos(x) + C'],
       correctOptionIndex: 0,
       explanation: 'The antiderivative of cos(x) is sin(x) + C because d/dx[sin(x)] = cos(x).',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'calc_8',
@@ -73,6 +80,7 @@ class QuizQuestionBank {
       options: ['3', '0', 'Infinity', '2'],
       correctOptionIndex: 0,
       explanation: 'Divide the numerator and denominator by highest power x²: limit is 3/1 = 3.',
+      difficulty: 3,
     ),
     QuizQuestion(
       id: 'calc_9',
@@ -82,6 +90,7 @@ class QuizQuestionBank {
       options: ['6x', '3x²', '6', 'x²'],
       correctOptionIndex: 0,
       explanation: 'The first derivative is 3x². The second derivative is d/dx [3x²] = 6x.',
+      difficulty: 3,
     ),
     QuizQuestion(
       id: 'calc_10',
@@ -91,6 +100,7 @@ class QuizQuestionBank {
       options: ['4', '5', '12', '-7'],
       correctOptionIndex: 0,
       explanation: 'The derivative of any linear function mx + b is constant slope m, which is 4.',
+      difficulty: 2,
     ),
   ];
 
@@ -103,6 +113,7 @@ class QuizQuestionBank {
       options: ['Mitochondria', 'Nucleus', 'Ribosome', 'Golgi apparatus'],
       correctOptionIndex: 0,
       explanation: 'Mitochondria generate most of the chemical energy (ATP) needed by the cell.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'bio_2',
@@ -112,6 +123,7 @@ class QuizQuestionBank {
       options: ['DNA', 'RNA', 'Hemoglobin', 'Lipid'],
       correctOptionIndex: 0,
       explanation: 'Deoxyribonucleic acid (DNA) stores hereditary blueprints across generations.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'bio_3',
@@ -121,6 +133,7 @@ class QuizQuestionBank {
       options: ['Photosynthesis', 'Fermentation', 'Cellular respiration', 'Transpiration'],
       correctOptionIndex: 0,
       explanation: 'Photosynthesis converts sunlight, water, and CO₂ into glucose and oxygen.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'bio_4',
@@ -130,6 +143,7 @@ class QuizQuestionBank {
       options: ['Transport oxygen', 'Fight infections', 'Clot blood', 'Digest nutrients'],
       correctOptionIndex: 0,
       explanation: 'Red blood cells contain hemoglobin that binds and transports oxygen.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'bio_5',
@@ -139,6 +153,7 @@ class QuizQuestionBank {
       options: ['Meiosis', 'Mitosis', 'Binary fission', 'Budding'],
       correctOptionIndex: 0,
       explanation: 'Meiosis halves the chromosome count to yield four genetically unique haploid cells.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'bio_6',
@@ -148,6 +163,7 @@ class QuizQuestionBank {
       options: ['Cell membrane', 'Cell wall', 'Vacuole', 'Chloroplast'],
       correctOptionIndex: 0,
       explanation: 'The phospholipid bilayer of the cell membrane controls cellular permeability.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'bio_7',
@@ -157,6 +173,7 @@ class QuizQuestionBank {
       options: ['Neuron', 'Nephron', 'Synapse', 'Axon'],
       correctOptionIndex: 0,
       explanation: 'Neurons conduct electrical impulses to coordinate sensory and motor activities.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'bio_8',
@@ -166,6 +183,7 @@ class QuizQuestionBank {
       options: ['Chlorophyll', 'Carotenoid', 'Anthocyanin', 'Melanin'],
       correctOptionIndex: 0,
       explanation: 'Chlorophyll inside thylakoid membranes absorbs blue and red light energy.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'bio_9',
@@ -175,6 +193,7 @@ class QuizQuestionBank {
       options: ['O negative', 'AB positive', 'A positive', 'O positive'],
       correctOptionIndex: 0,
       explanation: 'O negative blood lacks A, B, and Rh antigens, minimizing transfusion reactions.',
+      difficulty: 3,
     ),
     QuizQuestion(
       id: 'bio_10',
@@ -184,6 +203,7 @@ class QuizQuestionBank {
       options: ['Homeostasis', 'Metabolism', 'Osmosis', 'Symbiosis'],
       correctOptionIndex: 0,
       explanation: 'Homeostasis regulates biological conditions like temperature and glucose balance.',
+      difficulty: 3,
     ),
   ];
 
@@ -201,6 +221,7 @@ class QuizQuestionBank {
       ],
       correctOptionIndex: 0,
       explanation: 'Archduke Franz Ferdinand of Austria was assassinated in Sarajevo on June 28, 1914.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'hist_2',
@@ -210,6 +231,7 @@ class QuizQuestionBank {
       options: ['1776', '1789', '1812', '1765'],
       correctOptionIndex: 0,
       explanation: 'The Declaration of Independence was ratified on July 4, 1776 in Philadelphia.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'hist_3',
@@ -219,6 +241,7 @@ class QuizQuestionBank {
       options: ['Ancient Egyptians', 'Mesopotamians', 'Romans', 'Ancient Greeks'],
       correctOptionIndex: 0,
       explanation: 'The Giza pyramid complex was constructed during Egypt\'s Old Kingdom period.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'hist_4',
@@ -228,6 +251,7 @@ class QuizQuestionBank {
       options: ['Berlin Wall', 'Great Wall', 'Hadrian\'s Wall', 'Western Wall'],
       correctOptionIndex: 0,
       explanation: 'The dismantling of the Berlin Wall in November 1989 signaled the collapse of Soviet European control.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'hist_5',
@@ -237,6 +261,7 @@ class QuizQuestionBank {
       options: ['Thomas Jefferson', 'George Washington', 'Benjamin Franklin', 'John Adams'],
       correctOptionIndex: 0,
       explanation: 'Thomas Jefferson drafted the Declaration in the Second Continental Congress.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'hist_6',
@@ -251,6 +276,7 @@ class QuizQuestionBank {
       ],
       correctOptionIndex: 0,
       explanation: 'Germany invaded Poland on September 1, 1939, prompting Britain and France to declare war.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'hist_7',
@@ -260,6 +286,7 @@ class QuizQuestionBank {
       options: ['Augustus', 'Julius Caesar', 'Nero', 'Marcus Aurelius'],
       correctOptionIndex: 0,
       explanation: 'Augustus (Octavian) became Rome\'s first emperor in 27 BCE following the fall of the Republic.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'hist_8',
@@ -269,6 +296,7 @@ class QuizQuestionBank {
       options: ['Columbian Exchange', 'Silk Road', 'Triangular Trade', 'Industrial Revolution'],
       correctOptionIndex: 0,
       explanation: 'The Columbian Exchange connected the Americas and Afro-Eurasia after 1492.',
+      difficulty: 3,
     ),
     QuizQuestion(
       id: 'hist_9',
@@ -278,6 +306,7 @@ class QuizQuestionBank {
       options: ['The Renaissance', 'The Dark Ages', 'The Enlightenment', 'The Middle Ages'],
       correctOptionIndex: 0,
       explanation: 'The Renaissance began in 14th-century Italy, reviving classical philosophy and arts.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'hist_10',
@@ -287,6 +316,7 @@ class QuizQuestionBank {
       options: ['1215', '1066', '1492', '1776'],
       correctOptionIndex: 0,
       explanation: 'The Magna Carta was signed in June 1215 at Runnymede, bounding the monarch to the rule of law.',
+      difficulty: 3,
     ),
   ];
 
@@ -299,6 +329,7 @@ class QuizQuestionBank {
       options: ['Law of Inertia', 'Law of Action and Reaction', 'Law of Acceleration', 'Law of Universal Gravitation'],
       correctOptionIndex: 0,
       explanation: 'The Law of Inertia states that an object maintains its velocity unless an external force acts on it.',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'phys_2',
@@ -308,6 +339,7 @@ class QuizQuestionBank {
       options: ['Ohm (Ω)', 'Volt (V)', 'Ampere (A)', 'Watt (W)'],
       correctOptionIndex: 0,
       explanation: 'Electrical resistance is quantified in Ohms (Ω) following Ohm\'s law V = IR.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'phys_3',
@@ -317,6 +349,7 @@ class QuizQuestionBank {
       options: ['9.8 m/s²', '8.9 m/s²', '10.8 m/s²', '6.7 m/s²'],
       correctOptionIndex: 0,
       explanation: 'Standard gravitational acceleration on Earth is approximately 9.8 m/s².',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'phys_4',
@@ -326,6 +359,7 @@ class QuizQuestionBank {
       options: ['Archimedes\' Principle', 'Bernoulli\'s Principle', 'Pascal\'s Law', 'Hooke\'s Law'],
       correctOptionIndex: 0,
       explanation: 'Archimedes\' Principle governs buoyancy for submerged and floating bodies.',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'phys_5',
@@ -335,6 +369,7 @@ class QuizQuestionBank {
       options: ['3.0 × 10⁸ m/s', '3.0 × 10⁶ m/s', '1.5 × 10⁸ m/s', '3.0 × 10¹⁰ m/s'],
       correctOptionIndex: 0,
       explanation: 'Light travels through a vacuum at roughly 3.0 × 10⁸ meters per second (299,792,458 m/s).',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'phys_6',
@@ -344,6 +379,7 @@ class QuizQuestionBank {
       options: ['F = ma', 'E = mc²', 'p = mv', 'W = Fd'],
       correctOptionIndex: 0,
       explanation: 'Net force equals mass multiplied by acceleration (F = ma).',
+      difficulty: 1,
     ),
     QuizQuestion(
       id: 'phys_7',
@@ -353,6 +389,7 @@ class QuizQuestionBank {
       options: ['Longitudinal wave', 'Transverse wave', 'Electromagnetic wave', 'Surface wave'],
       correctOptionIndex: 0,
       explanation: 'Sound waves in fluids are longitudinal pressure waves vibrating parallel to propagation.',
+      difficulty: 3,
     ),
     QuizQuestion(
       id: 'phys_8',
@@ -362,6 +399,7 @@ class QuizQuestionBank {
       options: ['Power', 'Energy', 'Momentum', 'Velocity'],
       correctOptionIndex: 0,
       explanation: 'Power equals work divided by time (P = W/t), measured in Watts (Joules per second).',
+      difficulty: 2,
     ),
     QuizQuestion(
       id: 'phys_9',
@@ -371,6 +409,7 @@ class QuizQuestionBank {
       options: ['Conservation of Charge', 'Coulomb\'s Law', 'Faraday\'s Law', 'Ampere\'s Law'],
       correctOptionIndex: 0,
       explanation: 'The Law of Conservation of Electric Charge asserts net charge in an isolated system is constant.',
+      difficulty: 3,
     ),
     QuizQuestion(
       id: 'phys_10',
@@ -380,6 +419,7 @@ class QuizQuestionBank {
       options: ['Kinetic energy', 'Potential energy', 'Thermal energy', 'Chemical energy'],
       correctOptionIndex: 0,
       explanation: 'Kinetic energy (KE = ½mv²) represents the work needed to accelerate an object to its velocity.',
+      difficulty: 1,
     ),
   ];
 
