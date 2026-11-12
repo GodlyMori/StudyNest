@@ -4,6 +4,7 @@ import '../../constants/app_colors.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../services/attempt_sync_service.dart';
+import '../../services/mastery_service.dart';
 import 'login_screen.dart';
 import '../dashboard/main_navigation_screen.dart';
 
@@ -62,6 +63,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // Guest-score & attempt migration: attach device guest data to the new account
           await GuestScoreService.migrateGuestScoresToAccount(user.id);
           await AttemptSyncService.logger.migrateGuestAttempts(user.id);
+          final migratedAttempts =
+              await AttemptSyncService.logger.getAttempts(userId: user.id);
+          await MasteryService.tracker.migrateGuestMastery(
+            user.id,
+            migratedAttempts,
+          );
         }
       } else {
         // If Supabase not yet configured, throw informative error

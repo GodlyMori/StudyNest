@@ -8,6 +8,7 @@ import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../services/recommendation_engine.dart';
 import '../../services/attempt_sync_service.dart';
+import '../../services/mastery_service.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import 'quiz_results_screen.dart';
 
@@ -112,15 +113,19 @@ class _QuizScreenState extends State<QuizScreen> {
       isCorrect: isCorrect,
     );
 
-    // Log per-question attempt for V2 mastery / spaced repetition
-    AttemptSyncService.logger.logAttempt(
+    // Log per-question attempt and update BKT mastery immediately
+    AttemptSyncService.logger
+        .logAttempt(
       questionId: question.id,
       subject: question.subject,
       topic: question.topic,
       correct: isCorrect,
       timeTakenMs: timeTakenMs,
       hintUsed: hintUsed,
-    );
+    )
+        .then((attempt) {
+      return MasteryService.tracker.recordAttempt(attempt);
+    });
   }
 
   void _showOwlHintDialog() {
