@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../ml/bkt_mastery.dart';
+import 'attempt_sync_service.dart';
+import 'mastery_service.dart';
 
 class RecommendationItem {
   final String topic;
@@ -9,6 +12,7 @@ class RecommendationItem {
   final String timeEstimate; // '8 min', '6 min', etc.
   final int wrongCount;
   final DateTime lastAttempt;
+  final double? mastery;
 
   const RecommendationItem({
     required this.topic,
@@ -17,6 +21,7 @@ class RecommendationItem {
     required this.timeEstimate,
     required this.wrongCount,
     required this.lastAttempt,
+    this.mastery,
   });
 
   Map<String, dynamic> toJson() => {
@@ -26,6 +31,7 @@ class RecommendationItem {
         'timeEstimate': timeEstimate,
         'wrongCount': wrongCount,
         'lastAttempt': lastAttempt.toIso8601String(),
+        if (mastery != null) 'mastery': mastery,
       };
 
   factory RecommendationItem.fromJson(Map<String, dynamic> json) =>
@@ -38,11 +44,24 @@ class RecommendationItem {
         lastAttempt: json['lastAttempt'] != null
             ? DateTime.parse(json['lastAttempt'] as String)
             : DateTime.now(),
+        mastery: (json['mastery'] as num?)?.toDouble(),
       );
 }
 
 class RecommendationEngine {
   static const String _storageKey = 'recommendation_topic_stats';
+
+  /// Simple flag to switch between V2 BKT mastery ranking (`true`)
+  /// and the V1 rules-engine fallback (`false`).
+  static bool useBktMastery = true;
+
+  /// Maps a BKT mastery probability `[0.0, 1.0]` to a Hub priority label:
+  /// `< 0.4` -> `High priority`, `0.4–0.7` -> `Medium`, `> 0.7` -> `Low`.
+  static String priorityForMastery(double mastery) {
+    if (mastery < 0.4) return 'High priority';
+    if (mastery <= 0.7) return 'Medium';
+    return 'Low';
+  }
 
   // Fallback defaults if user has not yet taken any quizzes
   static final List<RecommendationItem> defaultRecommendations = [
@@ -108,10 +127,58 @@ class RecommendationEngine {
     await prefs.setString(_storageKey, jsonEncode(stats));
   }
 
-  /// Rules Engine Ranking:
-  /// 1. Weakest topic first (highest wrongCount descending).
-  /// 2. Longest since last attempt ascending (spaced repetition).
+  /// Ranks topics for the ML Recommendations Hub.
+  ///
+  /// When [useBktMastery] is `true` and BKT mastery data is available, ranks by
+  /// lowest mastery first. Falls back to the V1 rules engine when
+  /// [useBktMastery] is `false` or when no BKT mastery data exists yet.
   static Future<List<RecommendationItem>> getRankedRecommendations() async {
+    if (useBktMastery) {
+      final masteries = await MasteryService.loadOrRebuildMasteries();
+      if (masteries.isNotEmpty) {
+        return _rankByBktMastery(masteries);
+      }
+    }
+    return _getRulesRankedRecommendations();
+  }
+
+  static Future<List<RecommendationItem>> _rankByBktMastery(
+    Map<String, TopicMastery> masteries,
+  ) async {
+    final attempts = await AttemptSyncService.logger.getAttempts();
+    final wrongCounts = <String, int>{};
+    for (final a in attempts) {
+      if (!a.correct) {
+        final key = TopicMastery.topicKey(a.subject, a.topic);
+        wrongCounts[key] = (wrongCounts[key] ?? 0) + 1;
+      }
+    }
+
+    final sorted = masteries.values.toList()
+      ..sort((a, b) {
+        final cmp = a.mastery.compareTo(b.mastery); // Lowest mastery first
+        if (cmp != 0) return cmp;
+        return a.updatedAt.compareTo(b.updatedAt); // Oldest update first
+      });
+
+    return sorted.map((m) {
+      final key = TopicMastery.topicKey(m.subject, m.topic);
+      return RecommendationItem(
+        topic: m.topic,
+        subject: m.subject,
+        priority: priorityForMastery(m.mastery),
+        timeEstimate: _estimateTime(m.topic),
+        wrongCount: wrongCounts[key] ?? 0,
+        lastAttempt: m.updatedAt,
+        mastery: m.mastery,
+      );
+    }).toList();
+  }
+
+  /// V1 Rules Engine fallback:
+  /// 1. Weakest topic first (highest wrongCount descending).
+  /// 2. Longest since last attempt ascending.
+  static Future<List<RecommendationItem>> _getRulesRankedRecommendations() async {
     final prefs = await SharedPreferences.getInstance();
     final stats = await _loadRawStats(prefs);
 
