@@ -171,12 +171,17 @@ class RecommendationEngine {
     return 'Mastery $pct%, $total of your last $total $qWord correct';
   }
 
+  /// Mastery similarity band (5%) within which overdue reviews rank ahead.
+  static const double masterySimilarityBand = 0.05;
+
   @visibleForTesting
   static Future<List<RecommendationItem>> rankByBktMastery(
     Map<String, TopicMastery> masteries, {
     String? userId,
+    DateTime? now,
   }) async {
     final currentUserId = userId ?? SupabaseService.instance.currentUser?.id;
+    final refNow = (now ?? DateTime.now()).toUtc();
     final attempts = await AttemptSyncService.logger.getAttempts(
       userId: currentUserId,
     );
@@ -192,9 +197,19 @@ class RecommendationEngine {
 
     final sorted = masteries.values.toList()
       ..sort((a, b) {
-        final cmp = a.mastery.compareTo(b.mastery); // Lowest mastery first
-        if (cmp != 0) return cmp;
-        return a.updatedAt.compareTo(b.updatedAt); // Oldest update first
+        // Primary: lowest mastery band first (5% buckets for transitivity).
+        final bandA = (a.mastery / masterySimilarityBand).floor();
+        final bandB = (b.mastery / masterySimilarityBand).floor();
+        if (bandA != bandB) return bandA.compareTo(bandB);
+
+        // Secondary within similar mastery: most overdue review first.
+        final dueCmp = _compareOverdue(a.nextReviewAt, b.nextReviewAt, refNow);
+        if (dueCmp != 0) return dueCmp;
+
+        // Tertiary: exact lowest mastery, then oldest update.
+        final masteryCmp = a.mastery.compareTo(b.mastery);
+        if (masteryCmp != 0) return masteryCmp;
+        return a.updatedAt.compareTo(b.updatedAt);
       });
 
     return sorted.map((m) {
@@ -211,6 +226,16 @@ class RecommendationEngine {
         reason: buildMasteryReason(m.mastery, topicAttempts),
       );
     }).toList();
+  }
+
+  /// Compares two `nextReviewAt` timestamps so the most overdue comes first.
+  /// Scheduled reviews (especially overdue ones) rank ahead of unscheduled (`null`).
+  static int _compareOverdue(DateTime? a, DateTime? b, DateTime now) {
+    if (a == null && b == null) return 0;
+    if (a == null) return 1;
+    if (b == null) return -1;
+    // Earlier nextReviewAt = more overdue (or due sooner) -> comes first.
+    return a.toUtc().compareTo(b.toUtc());
   }
 
   /// V1 Rules Engine fallback:

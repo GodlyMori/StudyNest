@@ -1,4 +1,5 @@
 import 'question_attempt.dart';
+import 'sm2_scheduler.dart';
 
 /// Tunable parameters for Bayesian Knowledge Tracing (BKT).
 class BktParams {
@@ -46,6 +47,10 @@ class TopicMastery {
   final String topic;
   final double mastery;
   final DateTime updatedAt;
+  final double ease;
+  final int intervalDays;
+  final int repetitions;
+  final DateTime? nextReviewAt;
 
   const TopicMastery({
     this.userId,
@@ -53,6 +58,10 @@ class TopicMastery {
     required this.topic,
     required this.mastery,
     required this.updatedAt,
+    this.ease = Sm2Scheduler.initialEase,
+    this.intervalDays = 0,
+    this.repetitions = 0,
+    this.nextReviewAt,
   });
 
   String get key => topicKey(subject, topic);
@@ -65,6 +74,10 @@ class TopicMastery {
     String? topic,
     double? mastery,
     DateTime? updatedAt,
+    double? ease,
+    int? intervalDays,
+    int? repetitions,
+    DateTime? nextReviewAt,
   }) {
     return TopicMastery(
       userId: userId ?? this.userId,
@@ -72,6 +85,10 @@ class TopicMastery {
       topic: topic ?? this.topic,
       mastery: mastery ?? this.mastery,
       updatedAt: updatedAt ?? this.updatedAt,
+      ease: ease ?? this.ease,
+      intervalDays: intervalDays ?? this.intervalDays,
+      repetitions: repetitions ?? this.repetitions,
+      nextReviewAt: nextReviewAt ?? this.nextReviewAt,
     );
   }
 
@@ -82,16 +99,29 @@ class TopicMastery {
       'topic': topic,
       'mastery': mastery,
       'updated_at': updatedAt.toUtc().toIso8601String(),
+      'ease': ease,
+      'interval_days': intervalDays,
+      'repetitions': repetitions,
+      if (nextReviewAt != null)
+        'next_review_at': nextReviewAt!.toUtc().toIso8601String(),
     };
   }
 
   factory TopicMastery.fromJson(Map<String, dynamic> json) {
+    final intervalDays = (json['interval_days'] as num?)?.toInt() ?? 0;
     return TopicMastery(
       userId: json['user_id'] as String?,
       subject: json['subject'] as String,
       topic: json['topic'] as String,
       mastery: (json['mastery'] as num).toDouble().clamp(0.0, 1.0),
       updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
+      ease: (json['ease'] as num?)?.toDouble() ?? Sm2Scheduler.initialEase,
+      intervalDays: intervalDays,
+      repetitions: (json['repetitions'] as num?)?.toInt() ??
+          Sm2Scheduler.inferRepetitions(intervalDays),
+      nextReviewAt: json['next_review_at'] != null
+          ? DateTime.parse(json['next_review_at'] as String).toUtc()
+          : null,
     );
   }
 
@@ -102,16 +132,26 @@ class TopicMastery {
       'topic': topic,
       'mastery': mastery.clamp(0.0, 1.0),
       'updated_at': updatedAt.toUtc().toIso8601String(),
+      'ease': ease,
+      'interval_days': intervalDays,
+      'next_review_at': nextReviewAt?.toUtc().toIso8601String(),
     };
   }
 
   factory TopicMastery.fromSupabaseRow(Map<String, dynamic> row) {
+    final intervalDays = (row['interval_days'] as num?)?.toInt() ?? 0;
     return TopicMastery(
       userId: row['user_id'] as String?,
       subject: row['subject'] as String,
       topic: row['topic'] as String,
       mastery: (row['mastery'] as num).toDouble().clamp(0.0, 1.0),
       updatedAt: DateTime.parse(row['updated_at'] as String).toUtc(),
+      ease: (row['ease'] as num?)?.toDouble() ?? Sm2Scheduler.initialEase,
+      intervalDays: intervalDays,
+      repetitions: Sm2Scheduler.inferRepetitions(intervalDays),
+      nextReviewAt: row['next_review_at'] != null
+          ? DateTime.parse(row['next_review_at'] as String).toUtc()
+          : null,
     );
   }
 }

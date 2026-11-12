@@ -43,9 +43,10 @@ class _QuizScreenState extends State<QuizScreen> {
   int _secondsRemaining = 272;
   bool _isFinishing = false;
 
-  // Per-question tracking for V2 question_attempts logging
+  // Per-question tracking for V2 question_attempts logging & SM-2 scheduling
   final Stopwatch _questionStopwatch = Stopwatch();
   bool _hintUsedForCurrentQuestion = false;
+  final Map<String, ({int correct, int total, int hints})> _topicSessionStats = {};
 
   @override
   void initState() {
@@ -105,6 +106,14 @@ class _QuizScreenState extends State<QuizScreen> {
         _focusTopics.add(question.topic);
       }
     });
+
+    final prevTopicStats = _topicSessionStats[question.topic] ??
+        (correct: 0, total: 0, hints: 0);
+    _topicSessionStats[question.topic] = (
+      correct: prevTopicStats.correct + (isCorrect ? 1 : 0),
+      total: prevTopicStats.total + 1,
+      hints: prevTopicStats.hints + (hintUsed ? 1 : 0),
+    );
 
     // Record topic performance into recommendation engine
     RecommendationEngine.recordAnswer(
@@ -207,6 +216,17 @@ class _QuizScreenState extends State<QuizScreen> {
         grade: grade,
       );
       await GuestScoreService.migrateGuestScoresToAccount(user.id);
+    }
+
+    // Update SM-2 spaced-repetition schedule per topic based on session performance
+    for (final entry in _topicSessionStats.entries) {
+      await MasteryService.tracker.recordTopicReview(
+        subject: widget.subject,
+        topic: entry.key,
+        correctCount: entry.value.correct,
+        totalCount: entry.value.total,
+        hintCount: entry.value.hints,
+      );
     }
 
     if (!mounted) return;
