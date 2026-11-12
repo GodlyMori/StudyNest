@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../ml/bkt_mastery.dart';
 import '../../models/study_session.dart';
+import '../../services/mastery_service.dart';
+import '../../services/notification_service.dart';
 import '../../services/planner_service.dart';
 import '../../widgets/empty_state_view.dart';
 import '../owl_chat/owl_chat_screen.dart';
@@ -22,6 +25,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
   final List<String> _dates = ['4', '5', '6', '7', '8', '9', '10'];
 
   List<StudySession> _sessions = [];
+  List<TopicMastery> _dueReviews = [];
   bool _isLoading = true;
 
   @override
@@ -34,11 +38,43 @@ class _PlannerScreenState extends State<PlannerScreen> {
     final dayName = _days[_selectedDayIndex];
     final dayDate = _dates[_selectedDayIndex];
     final sessions = await PlannerService.getSessionsForDay(dayName, dayDate);
+    final due = await MasteryService.tracker.getDueTopics();
+    final filteredDue = due.where((m) {
+      final expectedTitle = 'Review: ${m.topic}';
+      return !sessions.any((s) => s.title == expectedTitle);
+    }).toList();
     if (mounted) {
       setState(() {
         _sessions = sessions;
+        _dueReviews = filteredDue;
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _scheduleDueReview(TopicMastery review) async {
+    final selectedDate = DateTime(2026, 11, 4 + _selectedDayIndex);
+    final reminderGranted = await NotificationService.isPermissionGranted();
+    final title = 'Review: ${review.topic}';
+
+    await AddStudySessionScreen.createAndSaveSession(
+      title: title,
+      subject: review.subject,
+      scheduledDate: selectedDate,
+      scheduledTime: const TimeOfDay(hour: 16, minute: 0),
+      reminderEnabled: reminderGranted,
+      type: 'Spaced Review',
+      dayOverride: _days[_selectedDayIndex],
+    );
+
+    await _loadSessions();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Scheduled $title for ${_days[_selectedDayIndex]}!'),
+          backgroundColor: AppColors.success,
+        ),
+      );
     }
   }
 
@@ -226,6 +262,102 @@ class _PlannerScreenState extends State<PlannerScreen> {
               ),
 
               const SizedBox(height: 24),
+
+              // SM-2 Reviews Due Section
+              if (_dueReviews.isNotEmpty) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Reviews due',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    Text(
+                      '${_dueReviews.length} due',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.accentDark,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ..._dueReviews.map((review) {
+                  final masteryPct = (review.mastery * 100).round();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => _scheduleDueReview(review),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.accent.withOpacity(0.5),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${review.subject} — ${review.topic}',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Mastery $masteryPct% • Review due (interval ${review.intervalDays}d)',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.accent,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Text(
+                                '+ Add',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 16),
+              ],
 
               // Sessions list
               Row(

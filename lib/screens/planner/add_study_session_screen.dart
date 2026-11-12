@@ -13,6 +13,87 @@ class AddStudySessionScreen extends StatefulWidget {
     this.initialDay,
   });
 
+  static const List<String> _weekDaysList = [
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
+  ];
+
+  static String formatTimeOfDay(TimeOfDay tod) {
+    final hour = tod.hourOfPeriod == 0 ? 12 : tod.hourOfPeriod;
+    final period = tod.period == DayPeriod.am ? 'AM' : 'PM';
+    final minute = tod.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $period';
+  }
+
+  static String formatDisplayDate(DateTime date) {
+    final dayName = _weekDaysList[date.weekday - 1];
+    return '$dayName, ${date.day} Nov ${date.year}';
+  }
+
+  /// Shared session-creation helper used by both the Add Study Session form
+  /// and one-tap SM-2 due-review suggestions on the Planner screen.
+  static Future<StudySession> createAndSaveSession({
+    required String title,
+    required String subject,
+    required DateTime scheduledDate,
+    required TimeOfDay scheduledTime,
+    required bool reminderEnabled,
+    String type = 'Self Study',
+    String? dayOverride,
+  }) async {
+    final dayName = dayOverride ?? _weekDaysList[scheduledDate.weekday - 1];
+    final startTimeStr = formatTimeOfDay(scheduledTime);
+    final endMinute = (scheduledTime.minute + 30) % 60;
+    final endHour = scheduledTime.hour + ((scheduledTime.minute + 30) ~/ 60);
+    final endTime = TimeOfDay(hour: endHour % 24, minute: endMinute);
+    final endTimeStr = formatTimeOfDay(endTime);
+    final timeRangeStr = '$startTimeStr – $endTimeStr';
+
+    final sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
+    final notificationId = sessionId.hashCode & 0x7FFFFFFF;
+
+    final session = StudySession(
+      id: sessionId,
+      title: title,
+      subject: subject,
+      date: dayName,
+      time: timeRangeStr,
+      type: type,
+      duration: '30 min',
+      status: 'Scheduled',
+      reminderEnabled: reminderEnabled,
+      notificationId: reminderEnabled ? notificationId : null,
+    );
+
+    await PlannerService.saveSession(session);
+
+    if (reminderEnabled) {
+      final scheduledDateTime = DateTime(
+        scheduledDate.year,
+        scheduledDate.month,
+        scheduledDate.day,
+        scheduledTime.hour,
+        scheduledTime.minute,
+      );
+
+      await NotificationService.scheduleSessionReminder(
+        id: notificationId,
+        title: title,
+        body: 'Starts at $startTimeStr for $subject',
+        scheduledDateTime: scheduledDateTime,
+        dateStr: formatDisplayDate(scheduledDate),
+        timeStr: startTimeStr,
+      );
+    }
+
+    return session;
+  }
+
   @override
   State<AddStudySessionScreen> createState() => _AddStudySessionScreenState();
 }
@@ -144,52 +225,13 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
     }
 
     final dayName = _getDayName(_selectedDate);
-    final startTimeStr = _formatTimeOfDay(_selectedTime);
-    // End time 30 mins later
-    final endMinute = (_selectedTime.minute + 30) % 60;
-    final endHour = _selectedTime.hour + ((_selectedTime.minute + 30) ~/ 60);
-    final endTime = TimeOfDay(hour: endHour % 24, minute: endMinute);
-    final endTimeStr = _formatTimeOfDay(endTime);
-    final timeRangeStr = '$startTimeStr – $endTimeStr';
-
-    final sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
-    final notificationId = sessionId.hashCode & 0x7FFFFFFF;
-
-    final session = StudySession(
-      id: sessionId,
+    await AddStudySessionScreen.createAndSaveSession(
       title: title,
       subject: _selectedSubject,
-      date: dayName,
-      time: timeRangeStr,
-      type: 'Self Study',
-      duration: '30 min',
-      status: 'Scheduled',
+      scheduledDate: _selectedDate,
+      scheduledTime: _selectedTime,
       reminderEnabled: _reminderEnabled,
-      notificationId: _reminderEnabled ? notificationId : null,
     );
-
-    // Save session to local SharedPreferences
-    await PlannerService.saveSession(session);
-
-    // If reminder enabled, schedule notification
-    if (_reminderEnabled) {
-      final scheduledDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
-      );
-
-      await NotificationService.scheduleSessionReminder(
-        id: notificationId,
-        title: title,
-        body: 'Starts at $startTimeStr for $_selectedSubject',
-        scheduledDateTime: scheduledDateTime,
-        dateStr: _formatDisplayDate(_selectedDate),
-        timeStr: startTimeStr,
-      );
-    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
