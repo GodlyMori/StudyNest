@@ -4,6 +4,7 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../services/network_service.dart';
 import '../../services/supabase_service.dart';
+import '../../services/attempt_sync_service.dart';
 import '../common/no_connection_screen.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
@@ -60,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
           email: email,
           password: password,
         );
+        await AttemptSyncService.logger.syncOutbox();
       } else {
         // If Supabase not connected yet, fail to prevent fake logins
         throw const AuthException('Supabase is not initialized or invalid credentials');

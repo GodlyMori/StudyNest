@@ -7,6 +7,7 @@ import '../../models/quiz_question.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../services/recommendation_engine.dart';
+import '../../services/attempt_sync_service.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import 'quiz_results_screen.dart';
 
@@ -41,10 +42,18 @@ class _QuizScreenState extends State<QuizScreen> {
   int _secondsRemaining = 272;
   bool _isFinishing = false;
 
+  // Per-question tracking for V2 question_attempts logging
+  final Stopwatch _questionStopwatch = Stopwatch();
+  bool _hintUsedForCurrentQuestion = false;
+
   @override
   void initState() {
     super.initState();
     _questions = QuizQuestionBank.getQuestionsForSubject(widget.subject);
+    _hintUsedForCurrentQuestion = false;
+    _questionStopwatch
+      ..reset()
+      ..start();
     _startTimer();
   }
 
@@ -78,6 +87,10 @@ class _QuizScreenState extends State<QuizScreen> {
   void _onOptionTapped(int index) {
     if (_isAnswered || _isFinishing) return;
 
+    _questionStopwatch.stop();
+    final timeTakenMs = _questionStopwatch.elapsedMilliseconds;
+    final hintUsed = _hintUsedForCurrentQuestion;
+
     final question = _questions[_currentQuestionIndex];
     final isCorrect = (index == question.correctOptionIndex);
 
@@ -98,9 +111,20 @@ class _QuizScreenState extends State<QuizScreen> {
       topic: question.topic,
       isCorrect: isCorrect,
     );
+
+    // Log per-question attempt for V2 mastery / spaced repetition
+    AttemptSyncService.logger.logAttempt(
+      questionId: question.id,
+      subject: question.subject,
+      topic: question.topic,
+      correct: isCorrect,
+      timeTakenMs: timeTakenMs,
+      hintUsed: hintUsed,
+    );
   }
 
   void _showOwlHintDialog() {
+    _hintUsedForCurrentQuestion = true;
     final question = _questions[_currentQuestionIndex];
     showDialog(
       context: context,
@@ -144,7 +168,11 @@ class _QuizScreenState extends State<QuizScreen> {
         _currentQuestionIndex++;
         _selectedOptionIndex = null;
         _isAnswered = false;
+        _hintUsedForCurrentQuestion = false;
       });
+      _questionStopwatch
+        ..reset()
+        ..start();
     } else {
       _finishQuiz();
     }

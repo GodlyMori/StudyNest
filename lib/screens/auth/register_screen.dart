@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../constants/app_colors.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
+import '../../services/attempt_sync_service.dart';
 import 'login_screen.dart';
 import '../dashboard/main_navigation_screen.dart';
 
@@ -58,8 +59,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         final user = response.user;
         if (user != null) {
-          // Guest-score migration: attach device guest scores to the new account
+          // Guest-score & attempt migration: attach device guest data to the new account
           await GuestScoreService.migrateGuestScoresToAccount(user.id);
+          await AttemptSyncService.logger.migrateGuestAttempts(user.id);
         }
       } else {
         // If Supabase not yet configured, throw informative error
