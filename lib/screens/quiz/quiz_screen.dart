@@ -6,6 +6,7 @@ import '../../constants/app_assets.dart';
 import '../../data/quiz_questions.dart';
 import '../../models/quiz_question.dart';
 import '../../ml/question_selector.dart';
+import '../../models/question_review_item.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../services/recommendation_engine.dart';
@@ -47,6 +48,7 @@ class _QuizScreenState extends State<QuizScreen> {
   int _correctCount = 0;
   final Set<String> _strongTopics = {};
   final Set<String> _focusTopics = {};
+  final List<QuestionReviewItem> _reviewItems = [];
 
   // Adaptive question selection state
   late List<QuizQuestion> _pool;
@@ -156,6 +158,16 @@ class _QuizScreenState extends State<QuizScreen> {
         _focusTopics.add(question.topic);
       }
     });
+
+    _reviewItems.add(
+      QuestionReviewItem(
+        question: question,
+        selectedOptionIndex: index,
+        isCorrect: isCorrect,
+        hintUsed: hintUsed,
+        timeTakenMs: timeTakenMs,
+      ),
+    );
 
     final prevTopicStats = _topicSessionStats[question.topic] ??
         (correct: 0, total: 0, hints: 0);
@@ -320,6 +332,7 @@ class _QuizScreenState extends State<QuizScreen> {
           grade: grade,
           strongTopics: _strongTopics.toList(),
           focusTopics: _focusTopics.toList(),
+          reviewItems: _reviewItems,
         ),
       ),
     );

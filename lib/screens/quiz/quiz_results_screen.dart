@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../models/question_review_item.dart';
 import '../../services/recommendation_engine.dart';
 import '../materials/materials_screen.dart';
 import '../recommendations/recommendations_hub_screen.dart';
+import 'quiz_review_screen.dart';
 import 'quiz_screen.dart';
 
 class QuizResultsScreen extends StatefulWidget {
@@ -12,6 +14,7 @@ class QuizResultsScreen extends StatefulWidget {
   final String grade;
   final List<String> strongTopics;
   final List<String> focusTopics;
+  final List<QuestionReviewItem>? reviewItems;
 
   const QuizResultsScreen({
     super.key,
@@ -20,6 +23,7 @@ class QuizResultsScreen extends StatefulWidget {
     required this.grade,
     this.strongTopics = const ['Algebra', 'Functions'],
     this.focusTopics = const ['Derivatives', 'Limits'],
+    this.reviewItems,
   });
 
   @override
@@ -143,6 +147,89 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
               ),
 
               const SizedBox(height: 24),
+
+              // Question-Level Review entry (Task 5.1)
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    key: const Key('review_questions_button'),
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => QuizReviewScreen(
+                            subject: widget.subject,
+                            reviewItems: widget.reviewItems ?? [],
+                          ),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceMuted,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.rate_review_outlined,
+                                  color: AppColors.textDark,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Review Questions',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    (widget.reviewItems != null && widget.reviewItems!.isNotEmpty)
+                                        ? '${widget.reviewItems!.length} questions answered'
+                                        : 'View detailed explanations',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
 
               // Recommended Review Plan (Dark card)
               Container(
