@@ -109,16 +109,16 @@ void main() {
 
   // --- Phase 2 New Tests ---
 
-  test('Question banks have 10 distinct questions per subject and keep Calculus question 1', () {
+  test('Question banks have 25 distinct questions per subject and keep Calculus question 1', () {
     for (final subject in ['Calculus', 'Biology', 'History', 'Physics']) {
       final questions = QuizQuestionBank.getQuestionsForSubject(subject);
-      expect(questions.length, 10, reason: '$subject must have exactly 10 questions');
+      expect(questions.length, 25, reason: '$subject must have exactly 25 questions');
 
       final ids = questions.map((q) => q.id).toSet();
-      expect(ids.length, 10, reason: '$subject must have unique IDs with no repeats');
+      expect(ids.length, 25, reason: '$subject must have unique IDs with no repeats');
 
       final texts = questions.map((q) => q.questionText).toSet();
-      expect(texts.length, 10, reason: '$subject questions must not repeat text');
+      expect(texts.length, 25, reason: '$subject questions must not repeat text');
 
       for (final q in questions) {
         expect(q.options.length, 4);

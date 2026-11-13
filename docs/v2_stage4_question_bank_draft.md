@@ -1,8 +1,9 @@
-# V2 Stage 4 Question Bank Draft (Task 4.1)
+# V2 Stage 4 Question Bank Review Record (Task 4.1 & Task 4.3)
 
-> **Status:** Draft for review only. **Do NOT add to `lib/data/quiz_questions.dart` yet.**  
-> **Target:** 60 new questions (15 per subject) expanding the current 40-question bank to 100 questions (25 per subject).  
-> **Difficulty Distribution Target per Subject:** ~40% easy (difficulty 1), ~40% medium (difficulty 2), ~20% hard (difficulty 3). (e.g. 6 easy, 6 medium, 3 hard).
+> **Status:** Reviewed and approved by Alvin; wired into `lib/data/quiz_questions.dart` (Task 4.3).  
+> **Bank Size:** 100 questions (25 per subject across Calculus, Biology, History, Physics).  
+> **Answer Distribution:** Programmatically balanced across options A, B, C, D to eliminate option-position bias.  
+> **Difficulty Distribution per Subject:** ~40% easy (difficulty 1), ~40% medium (difficulty 2), ~20% hard (difficulty 3).
 
 ---
 
