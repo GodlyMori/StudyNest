@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import 'custom_quiz_screen.dart';
 import 'quiz_screen.dart';
 
 class TopicsQuizzesScreen extends StatelessWidget {
@@ -104,6 +105,68 @@ class TopicsQuizzesScreen extends StatelessWidget {
                         ),
                       ),
                       const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Custom Quiz Entry Card (Task 5.2)
+              GestureDetector(
+                key: const Key('custom_quiz_entry_button'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CustomQuizScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceMuted,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.tune, color: AppColors.primary, size: 26),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Custom Quiz',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Target specific topics, difficulty, and quiz length',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, color: AppColors.textSecondary, size: 16),
                     ],
                   ),
                 ),

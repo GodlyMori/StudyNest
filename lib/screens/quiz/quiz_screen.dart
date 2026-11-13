@@ -22,10 +22,18 @@ class QuizScreen extends StatefulWidget {
   /// and item difficulty.
   final bool isAdaptive;
 
+  /// Optional filtered question pool for custom quizzes (Task 5.2).
+  final List<QuizQuestion>? customPool;
+
+  /// Optional custom quiz target question count (Task 5.2).
+  final int? targetQuestionCount;
+
   const QuizScreen({
     super.key,
     this.subject = 'Calculus',
     this.isAdaptive = true,
+    this.customPool,
+    this.targetQuestionCount,
   });
 
   static String calculateGrade(int score) {
@@ -71,9 +79,24 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
-    _pool = QuizQuestionBank.getQuestionsForSubject(widget.subject);
+    if (widget.customPool != null) {
+      _pool = List<QuizQuestion>.from(widget.customPool!);
+      _targetTotalQuestions = min(
+        widget.targetQuestionCount ?? 10,
+        _pool.length,
+      );
+    } else {
+      _pool = QuizQuestionBank.getQuestionsForSubject(widget.subject);
+      _targetTotalQuestions = min(10, _pool.length);
+    }
+
+    if (_pool.isEmpty) {
+      _questions = [];
+      _startTimer();
+      return;
+    }
+
     final isDiag = widget.subject.toLowerCase().contains('diagnostic');
-    _targetTotalQuestions = min(10, _pool.length);
 
     if (widget.isAdaptive) {
       // Pick the first question adaptively (diagnostic starts at medium difficulty 2)
@@ -87,7 +110,7 @@ class _QuizScreenState extends State<QuizScreen> {
       _servedQuestionIds.add(firstQ.id);
       _loadMasteriesAndHistory();
     } else {
-      _questions = _pool;
+      _questions = _pool.take(_targetTotalQuestions).toList();
     }
 
     _hintUsedForCurrentQuestion = false;
@@ -291,7 +314,7 @@ class _QuizScreenState extends State<QuizScreen> {
     final total = widget.isAdaptive
         ? _targetTotalQuestions
         : (_questions.isEmpty ? 10 : _questions.length);
-    final score = ((_correctCount / total) * 100).round();
+    final score = total > 0 ? ((_correctCount / total) * 100).round() : 0;
     final grade = QuizScreen.calculateGrade(score);
 
     // Save completed quiz result (Phase 1 & Phase 2 contract)
