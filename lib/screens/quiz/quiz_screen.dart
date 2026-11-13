@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../data/quiz_questions.dart';
 import '../../models/quiz_question.dart';
+import '../../ml/question_selector.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../services/recommendation_engine.dart';
@@ -15,7 +17,15 @@ import 'quiz_results_screen.dart';
 class QuizScreen extends StatefulWidget {
   final String subject;
 
-  const QuizScreen({super.key, this.subject = 'Calculus'});
+  /// Whether questions are adaptively selected based on student BKT mastery
+  /// and item difficulty.
+  final bool isAdaptive;
+
+  const QuizScreen({
+    super.key,
+    this.subject = 'Calculus',
+    this.isAdaptive = true,
+  });
 
   static String calculateGrade(int score) {
     if (score >= 90) return 'Grade A';
@@ -38,6 +48,14 @@ class _QuizScreenState extends State<QuizScreen> {
   final Set<String> _strongTopics = {};
   final Set<String> _focusTopics = {};
 
+  // Adaptive question selection state
+  late List<QuizQuestion> _pool;
+  final Set<String> _servedQuestionIds = {};
+  Map<String, double> _cachedMasteries = {};
+  List<String> _recentAttemptIds = [];
+
+  late int _targetTotalQuestions;
+
   // Countdown timer: 04:32 (272 seconds)
   Timer? _countdownTimer;
   int _secondsRemaining = 272;
@@ -51,12 +69,44 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
-    _questions = QuizQuestionBank.getQuestionsForSubject(widget.subject);
+    _pool = QuizQuestionBank.getQuestionsForSubject(widget.subject);
+    final isDiag = widget.subject.toLowerCase().contains('diagnostic');
+    _targetTotalQuestions = min(10, _pool.length);
+
+    if (widget.isAdaptive) {
+      // Pick the first question adaptively (diagnostic starts at medium difficulty 2)
+      final firstQ = QuestionSelector.pickNextQuestion(
+            availablePool: _pool,
+            servedInCurrentQuiz: _servedQuestionIds,
+            isDiagnostic: isDiag,
+          ) ??
+          _pool.first;
+      _questions = [firstQ];
+      _servedQuestionIds.add(firstQ.id);
+      _loadMasteriesAndHistory();
+    } else {
+      _questions = _pool;
+    }
+
     _hintUsedForCurrentQuestion = false;
     _questionStopwatch
       ..reset()
       ..start();
     _startTimer();
+  }
+
+  Future<void> _loadMasteriesAndHistory() async {
+    try {
+      final masteries = await MasteryService.loadOrRebuildMasteries();
+      final attempts = await AttemptSyncService.logger.getAttempts();
+      if (!mounted) return;
+      setState(() {
+        _cachedMasteries = masteries.map((k, v) => MapEntry(v.topic, v.mastery));
+        _recentAttemptIds = attempts.map((a) => a.questionId).toList();
+      });
+    } catch (_) {
+      // Non-critical background load; fallback defaults will be used.
+    }
   }
 
   void _startTimer() {
@@ -177,18 +227,47 @@ class _QuizScreenState extends State<QuizScreen> {
   void _handleNext() {
     if (!_isAnswered) return;
 
-    if (_currentQuestionIndex + 1 < _questions.length) {
-      setState(() {
-        _currentQuestionIndex++;
-        _selectedOptionIndex = null;
-        _isAnswered = false;
-        _hintUsedForCurrentQuestion = false;
-      });
-      _questionStopwatch
-        ..reset()
-        ..start();
-    } else {
+    if (widget.isAdaptive) {
+      if (_questions.length < _targetTotalQuestions) {
+        final isDiag = widget.subject.toLowerCase().contains('diagnostic');
+        final nextQ = QuestionSelector.pickNextQuestion(
+          availablePool: _pool,
+          servedInCurrentQuiz: _servedQuestionIds,
+          topicMasteries: _cachedMasteries,
+          recentAttemptIds: _recentAttemptIds,
+          isDiagnostic: isDiag,
+        );
+
+        if (nextQ != null) {
+          setState(() {
+            _questions.add(nextQ);
+            _servedQuestionIds.add(nextQ.id);
+            _currentQuestionIndex++;
+            _selectedOptionIndex = null;
+            _isAnswered = false;
+            _hintUsedForCurrentQuestion = false;
+          });
+          _questionStopwatch
+            ..reset()
+            ..start();
+          return;
+        }
+      }
       _finishQuiz();
+    } else {
+      if (_currentQuestionIndex + 1 < _questions.length) {
+        setState(() {
+          _currentQuestionIndex++;
+          _selectedOptionIndex = null;
+          _isAnswered = false;
+          _hintUsedForCurrentQuestion = false;
+        });
+        _questionStopwatch
+          ..reset()
+          ..start();
+      } else {
+        _finishQuiz();
+      }
     }
   }
 
@@ -197,7 +276,9 @@ class _QuizScreenState extends State<QuizScreen> {
     _isFinishing = true;
     _countdownTimer?.cancel();
 
-    final total = _questions.isEmpty ? 10 : _questions.length;
+    final total = widget.isAdaptive
+        ? _targetTotalQuestions
+        : (_questions.isEmpty ? 10 : _questions.length);
     final score = ((_correctCount / total) * 100).round();
     final grade = QuizScreen.calculateGrade(score);
 
@@ -253,8 +334,10 @@ class _QuizScreenState extends State<QuizScreen> {
     }
 
     final question = _questions[_currentQuestionIndex];
-    final progress = (_currentQuestionIndex + 1) / _questions.length;
-    final isLastQuestion = (_currentQuestionIndex + 1 == _questions.length);
+    final totalDisplay =
+        widget.isAdaptive ? _targetTotalQuestions : _questions.length;
+    final progress = (_currentQuestionIndex + 1) / totalDisplay;
+    final isLastQuestion = (_currentQuestionIndex + 1 == totalDisplay);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -325,7 +408,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Question ${_currentQuestionIndex + 1} of ${_questions.length}',
+                    'Question ${_currentQuestionIndex + 1} of $totalDisplay',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,

@@ -425,7 +425,15 @@ class QuizQuestionBank {
 
   static List<QuizQuestion> getQuestionsForSubject(String subject) {
     final normalized = subject.trim().toLowerCase();
-    if (normalized.contains('calculus') ||
+    if (normalized.contains('diagnostic')) {
+      // Diagnostic pool gathers questions across all 4 subjects
+      return [
+        ...calculusQuestions,
+        ...biologyQuestions,
+        ...historyQuestions,
+        ...physicsQuestions,
+      ];
+    } else if (normalized.contains('calculus') ||
         normalized.contains('math') ||
         normalized.contains('algebra')) {
       return calculusQuestions;
