@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:study_nest/screens/dashboard/home_screen.dart';
 import 'package:study_nest/screens/profile/profile_screen.dart';
 import 'package:study_nest/screens/profile/settings_screen.dart';
 import 'package:study_nest/services/guest_score_service.dart';
@@ -57,29 +58,47 @@ void main() {
       expect(streakSaved, equals(2));
     });
 
+    test('freeze guard: spending a freeze with no prior activity is refused', () async {
+      final friday = DateTime(2026, 11, 13, 10, 0);
+
+      // Attempting to spend a freeze with no prior activity must be refused
+      final refused = await StreakService.spendStreakFreeze(
+        completedQuizTimestamps: [],
+        now: friday,
+      );
+      expect(refused, isFalse, reason: 'Must not manufacture a streak from zero prior activity');
+    });
+
     test('only one freeze per week is allowed and allowance resets across weeks', () async {
+      final wednesdayWeek1 = DateTime(2026, 11, 11, 10, 0);
       final fridayWeek1 = DateTime(2026, 11, 13, 10, 0);
       final saturdayWeek1 = DateTime(2026, 11, 14, 10, 0);
       final tuesdayWeek2 = DateTime(2026, 11, 17, 10, 0);
 
-      // Spend first freeze on Friday of Week 1 -> succeeds
-      final firstSpend = await StreakService.spendStreakFreeze(now: fridayWeek1);
+      // Spend first freeze on Friday of Week 1 with Wednesday activity -> succeeds
+      final firstSpend = await StreakService.spendStreakFreeze(
+        completedQuizTimestamps: [wednesdayWeek1],
+        now: fridayWeek1,
+      );
       expect(firstSpend, isTrue);
 
       // Verify 0 freezes remaining in Week 1
       final dataSat = await StreakService.computeStreakData(
-        completedQuizTimestamps: [],
+        completedQuizTimestamps: [wednesdayWeek1],
         now: saturdayWeek1,
       );
       expect(dataSat.freezesRemaining, equals(0));
 
       // Attempting second freeze in the same week fails
-      final secondSpend = await StreakService.spendStreakFreeze(now: saturdayWeek1);
+      final secondSpend = await StreakService.spendStreakFreeze(
+        completedQuizTimestamps: [wednesdayWeek1],
+        now: saturdayWeek1,
+      );
       expect(secondSpend, isFalse);
 
       // Next week (Week 2): freeze allowance resets to 1
       final dataWeek2 = await StreakService.computeStreakData(
-        completedQuizTimestamps: [],
+        completedQuizTimestamps: [wednesdayWeek1],
         now: tuesdayWeek2,
       );
       expect(dataWeek2.freezesRemaining, equals(1));
@@ -157,6 +176,36 @@ void main() {
 
       expect(find.text('Target: 3 quizzes per day'), findsOneWidget);
       expect(await StreakService.getDailyGoal(), equals(3));
+    });
+
+    testWidgets('HomeScreen streak chip displays real streak from StreakService',
+        (tester) async {
+      // 1. Initial zero streak
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: HomeScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('home_streak_chip_text')), findsOneWidget);
+      expect(find.text('0-Day Streak'), findsOneWidget);
+
+      // 2. Add quiz score for today -> streak becomes 1
+      await GuestScoreService.saveGuestScore(
+        subject: 'Calculus',
+        score: 85,
+        grade: 'Grade B',
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: HomeScreen(key: Key('home_screen_second')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('1-Day Streak'), findsOneWidget);
     });
   });
 }

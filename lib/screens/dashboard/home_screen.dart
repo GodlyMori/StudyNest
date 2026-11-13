@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../services/streak_service.dart';
 import '../quiz/quiz_screen.dart';
 import '../groups/study_groups_screen.dart';
 import '../planner/planner_screen.dart';
@@ -9,10 +10,32 @@ import '../owl_chat/owl_chat_screen.dart';
 import '../profile/profile_screen.dart';
 import '../recommendations/recommendations_hub_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final Function(int)? onNavigateTab;
 
   const HomeScreen({super.key, this.onNavigateTab});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _streak = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStreak();
+  }
+
+  Future<void> _loadStreak() async {
+    final streakData = await StreakService.getCurrentStreakData();
+    if (mounted) {
+      setState(() {
+        _streak = streakData.currentStreak;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +79,8 @@ class HomeScreen extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        if (onNavigateTab != null) {
-                          onNavigateTab!(3); // Profile tab
+                        if (widget.onNavigateTab != null) {
+                          widget.onNavigateTab!(3); // Profile tab
                         } else {
                           Navigator.push(
                             context,
@@ -104,12 +127,13 @@ class HomeScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.local_fire_department, size: 18, color: AppColors.textDark),
-                            SizedBox(width: 6),
+                          children: [
+                            const Icon(Icons.local_fire_department, size: 18, color: AppColors.textDark),
+                            const SizedBox(width: 6),
                             Text(
-                              '5-Day Streak',
-                              style: TextStyle(
+                              '$_streak-Day Streak',
+                              key: const Key('home_streak_chip_text'),
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
@@ -334,8 +358,8 @@ class HomeScreen extends StatelessWidget {
                           title: 'My Study Groups',
                           icon: Icons.groups_outlined,
                           onTap: () {
-                            if (onNavigateTab != null) {
-                              onNavigateTab!(2);
+                            if (widget.onNavigateTab != null) {
+                              widget.onNavigateTab!(2);
                             } else {
                               Navigator.push(
                                 context,

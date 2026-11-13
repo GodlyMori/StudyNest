@@ -1,4 +1,9 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../ml/question_attempt.dart';
+import 'attempt_sync_service.dart';
+import 'guest_score_service.dart';
+import 'network_service.dart';
+import 'supabase_service.dart';
 
 /// Data structure encapsulating current study streak, freeze availability,
 /// and daily quiz goal progress.
@@ -157,7 +162,12 @@ class StreakService {
     final yesterdayMissed = !activeDates.contains(yesterdayStr) &&
         !frozenDates.contains(yesterdayStr);
 
-    final canUseFreeze = freezesRemaining > 0 && yesterdayMissed;
+    // Rule: Activity must exist before yesterday to protect an actual streak
+    final hasActivityBeforeYesterday =
+        activeDates.any((d) => d.compareTo(yesterdayStr) < 0);
+
+    final canUseFreeze =
+        freezesRemaining > 0 && yesterdayMissed && hasActivityBeforeYesterday;
 
     final currentStreak = calculateStreak(
       activeDates: activeDates,
@@ -176,9 +186,84 @@ class StreakService {
     );
   }
 
+  /// Resolves active dates from local storage (guest scores, user scores, and attempts).
+  static Future<Set<String>> getActiveDatesFromStorage() async {
+    final user = SupabaseService.instance.currentUser;
+    final scores = await GuestScoreService.getScoresForUser(userId: user?.id);
+    var attempts = await AttemptSyncService.logger.getAttempts(userId: user?.id);
+    if (attempts.isEmpty &&
+        user != null &&
+        SupabaseService.instance.isInitialized &&
+        await NetworkService.isOnline()) {
+      try {
+        final rows = await SupabaseService.instance.client
+            .from('question_attempts')
+            .select()
+            .eq('user_id', user.id)
+            .order('answered_at', ascending: true);
+        attempts = (rows as List)
+            .map((r) => QuestionAttempt.fromJson(Map<String, dynamic>.from(r as Map)))
+            .toList();
+      } catch (_) {}
+    }
+
+    final dates = <String>{};
+    for (final s in scores) {
+      final raw = s['created_at'] ?? s['date'];
+      if (raw != null) {
+        try {
+          dates.add(formatDate(DateTime.parse(raw.toString()).toLocal()));
+        } catch (_) {}
+      }
+    }
+    for (final a in attempts) {
+      dates.add(formatDate(a.answeredAt.toLocal()));
+    }
+    return dates;
+  }
+
+  /// Convenience method resolving all real activity from storage to compute [StreakData].
+  static Future<StreakData> getCurrentStreakData([DateTime? now]) async {
+    final user = SupabaseService.instance.currentUser;
+    final scores = await GuestScoreService.getScoresForUser(userId: user?.id);
+    var attempts = await AttemptSyncService.logger.getAttempts(userId: user?.id);
+    if (attempts.isEmpty &&
+        user != null &&
+        SupabaseService.instance.isInitialized &&
+        await NetworkService.isOnline()) {
+      try {
+        final rows = await SupabaseService.instance.client
+            .from('question_attempts')
+            .select()
+            .eq('user_id', user.id)
+            .order('answered_at', ascending: true);
+        attempts = (rows as List)
+            .map((r) => QuestionAttempt.fromJson(Map<String, dynamic>.from(r as Map)))
+            .toList();
+      } catch (_) {}
+    }
+
+    final timestamps = <DateTime>[];
+    for (final s in scores) {
+      final raw = s['created_at'] ?? s['date'];
+      if (raw != null) {
+        try {
+          timestamps.add(DateTime.parse(raw.toString()).toLocal());
+        } catch (_) {}
+      }
+    }
+    for (final a in attempts) {
+      timestamps.add(a.answeredAt.toLocal());
+    }
+
+    return computeStreakData(completedQuizTimestamps: timestamps, now: now);
+  }
+
   /// Spends a weekly streak freeze for yesterday (or the specified [targetDate]).
   /// Returns `true` if freeze was successfully spent, `false` if not allowed.
   static Future<bool> spendStreakFreeze({
+    Set<String>? activeDates,
+    List<DateTime>? completedQuizTimestamps,
     DateTime? targetDate,
     DateTime? now,
   }) async {
@@ -192,6 +277,21 @@ class StreakService {
 
     final dateToFreeze = targetDate ?? today.subtract(const Duration(days: 1));
     final freezeDateStr = formatDate(dateToFreeze);
+
+    // Enforce freeze guard: must have activity before the date being frozen
+    final Set<String> dates;
+    if (activeDates != null) {
+      dates = activeDates;
+    } else if (completedQuizTimestamps != null) {
+      dates = completedQuizTimestamps.map(formatDate).toSet();
+    } else {
+      dates = await getActiveDatesFromStorage();
+    }
+
+    final hasActivityBefore = dates.any((d) => d.compareTo(freezeDateStr) < 0);
+    if (!hasActivityBefore) {
+      return false; // Cannot spend freeze without prior activity to protect
+    }
 
     final prefs = await SharedPreferences.getInstance();
     final existingFrozen = prefs.getStringList(keyFrozenDates) ?? [];
