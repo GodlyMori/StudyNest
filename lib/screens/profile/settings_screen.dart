@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/app_colors.dart';
+import '../../services/streak_service.dart';
 import '../../services/supabase_service.dart';
 import '../auth/welcome_screen.dart';
 import 'edit_profile_screen.dart';
@@ -23,6 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _pushNotifications = true;
   bool _studyReminders = true;
   bool _soundEffects = true;
+  int _dailyGoal = 1;
 
   @override
   void initState() {
@@ -32,11 +34,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
+    final goal = await StreakService.getDailyGoal();
     if (mounted) {
       setState(() {
         _pushNotifications = prefs.getBool(_keyPushNotifications) ?? true;
         _studyReminders = prefs.getBool(_keyStudyReminders) ?? true;
         _soundEffects = prefs.getBool(_keySoundEffects) ?? true;
+        _dailyGoal = goal;
       });
     }
   }
@@ -186,8 +190,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
+            const SizedBox(height: 8),
 
-            const SizedBox(height: 32),
+            _buildDailyGoalTile(),
+
+            const SizedBox(height: 24),
 
             // Log Out Button
             SizedBox(
@@ -251,6 +258,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDailyGoalTile() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Daily Quiz Goal',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Target: $_dailyGoal ${_dailyGoal == 1 ? "quiz" : "quizzes"} per day',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          DropdownButton<int>(
+            key: const Key('daily_goal_dropdown'),
+            value: _dailyGoal,
+            underline: const SizedBox(),
+            items: const [
+              DropdownMenuItem(value: 1, child: Text('1 quiz')),
+              DropdownMenuItem(value: 2, child: Text('2 quizzes')),
+              DropdownMenuItem(value: 3, child: Text('3 quizzes')),
+              DropdownMenuItem(value: 5, child: Text('5 quizzes')),
+            ],
+            onChanged: (newGoal) async {
+              if (newGoal != null) {
+                setState(() => _dailyGoal = newGoal);
+                await StreakService.setDailyGoal(newGoal);
+              }
+            },
+          ),
+        ],
       ),
     );
   }

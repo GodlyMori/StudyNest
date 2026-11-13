@@ -5,6 +5,7 @@ import '../../ml/question_attempt.dart';
 import '../../ml/topic_progress_analytics.dart';
 import '../../services/attempt_sync_service.dart';
 import '../../services/network_service.dart';
+import '../../services/streak_service.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../widgets/empty_state_view.dart';
@@ -25,6 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _profile;
   List<Map<String, dynamic>> _quizScores = [];
   List<TopicProgressData> _topicProgressList = [];
+  StreakData? _streakData;
 
   static const List<({String subject, String topic})> _coreTopics = [
     (subject: 'Calculus', topic: 'Derivatives'),
@@ -111,11 +113,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }).toList();
 
+    // Compute real consecutive-day streak and daily goal progress (Task 5.4)
+    final quizTimestamps = <DateTime>[];
+    for (final s in scores) {
+      final raw = s['created_at'] ?? s['date'];
+      if (raw != null) {
+        try {
+          quizTimestamps.add(DateTime.parse(raw.toString()).toLocal());
+        } catch (_) {}
+      }
+    }
+    for (final a in attempts) {
+      quizTimestamps.add(a.answeredAt.toLocal());
+    }
+
+    final streakData = await StreakService.computeStreakData(
+      completedQuizTimestamps: quizTimestamps,
+    );
+
     if (mounted) {
       setState(() {
         _profile = profile;
         _quizScores = scores;
         _topicProgressList = progressList;
+        _streakData = streakData;
       });
     }
   }
@@ -238,9 +259,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          '5-Day Streak • 1,240 XP',
-                          style: TextStyle(
+                        Text(
+                          '${_streakData?.currentStreak ?? 0}-Day Streak • Active Goal',
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: AppColors.success,
@@ -251,6 +272,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
+
+              const SizedBox(height: 20),
+
+              // Daily Goal & Streak Freeze Card (Task 5.4)
+              _buildDailyGoalAndStreakCard(),
 
               const SizedBox(height: 24),
 
@@ -347,6 +373,179 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDailyGoalAndStreakCard() {
+    final streak = _streakData?.currentStreak ?? 0;
+    final todayDone = _streakData?.todayQuizzesCompleted ?? 0;
+    final goal = _streakData?.dailyGoal ?? 1;
+    final goalMet = todayDone >= goal;
+    final freezes = _streakData?.freezesRemaining ?? 1;
+    final canFreeze = _streakData?.canUseFreeze ?? false;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Goal Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.accentLight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.flag_outlined,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Daily Quiz Goal',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: goalMet ? AppColors.successLight : AppColors.surfaceMuted,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  goalMet ? 'Goal Met' : '$todayDone / $goal done',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: goalMet ? AppColors.success : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          // Progress bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: goal > 0 ? (todayDone / goal).clamp(0.0, 1.0) : 0.0,
+              minHeight: 6,
+              backgroundColor: AppColors.surfaceMuted,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                goalMet ? AppColors.success : AppColors.accent,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            '$todayDone of $goal quizzes done today',
+            key: const Key('daily_goal_progress_text'),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
+          ),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12.0),
+            child: Divider(height: 1, color: AppColors.border),
+          ),
+
+          // Streak & Freeze Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.bolt,
+                        color: AppColors.warning,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$streak-day streak',
+                        key: const Key('streak_count_text'),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    freezes > 0
+                        ? '$freezes freeze available this week'
+                        : 'Streak freeze used this week (0 remaining)',
+                    key: const Key('streak_freeze_remaining_text'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+
+              if (canFreeze)
+                ElevatedButton(
+                  key: const Key('use_streak_freeze_button'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.backgroundDark,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    elevation: 0,
+                  ),
+                  onPressed: () async {
+                    final success = await StreakService.spendStreakFreeze();
+                    if (success && mounted) {
+                      await _loadProfileAndScores();
+                    }
+                  },
+                  child: const Text(
+                    'Use streak freeze',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
