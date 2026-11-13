@@ -28,12 +28,16 @@ class QuizScreen extends StatefulWidget {
   /// Optional custom quiz target question count (Task 5.2).
   final int? targetQuestionCount;
 
+  /// Optional callback invoked when the quiz finishes with (correctCount, totalCount).
+  final void Function(int score, int total)? onQuizCompleted;
+
   const QuizScreen({
     super.key,
     this.subject = 'Calculus',
     this.isAdaptive = true,
     this.customPool,
     this.targetQuestionCount,
+    this.onQuizCompleted,
   });
 
   static String calculateGrade(int score) {
@@ -344,6 +348,8 @@ class _QuizScreenState extends State<QuizScreen> {
         hintCount: entry.value.hints,
       );
     }
+
+    widget.onQuizCompleted?.call(_correctCount, total);
 
     if (!mounted) return;
     Navigator.pushReplacement(
