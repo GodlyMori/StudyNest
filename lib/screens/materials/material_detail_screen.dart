@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../models/study_material.dart';
+import '../../services/flashcard_service.dart';
 import '../../services/material_download_service.dart';
 import '../../services/network_service.dart';
+import 'flashcard_study_screen.dart';
+import 'make_flashcards_screen.dart';
 
 class MaterialDetailScreen extends StatefulWidget {
   final StudyMaterial material;
@@ -21,6 +24,7 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
   bool _isLoading = true;
   bool _isOnline = true;
   StudyMaterial? _localMaterial;
+  int _cardCount = 0;
 
   @override
   void initState() {
@@ -43,15 +47,46 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
     if (downloaded) {
       local = await MaterialDownloadService.getDownloadedMaterial(widget.material.id);
     }
+    final cards = await FlashcardService.getFlashcardsForMaterial(widget.material.id);
 
     if (mounted) {
       setState(() {
         _isDownloaded = downloaded;
         _isOnline = online;
         _localMaterial = local;
+        _cardCount = cards.length;
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _openMakeFlashcards() async {
+    final activeMaterial = _localMaterial ?? widget.material;
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MakeFlashcardsScreen(material: activeMaterial),
+      ),
+    );
+    if (result == true) {
+      await _loadStatus();
+    }
+  }
+
+  Future<void> _openStudyFlashcards() async {
+    final cards = await FlashcardService.getFlashcardsForMaterial(widget.material.id);
+    if (cards.isEmpty) return;
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FlashcardStudyScreen(
+          title: widget.material.title,
+          cards: cards,
+        ),
+      ),
+    );
+    await _loadStatus();
   }
 
   Future<void> _toggleDownload() async {
@@ -246,6 +281,48 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
                                 elevation: 0,
                               ),
                             ),
+                          ),
+                          const SizedBox(height: 10),
+                          // Flashcards Action Row
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  key: const Key('make_flashcards_button'),
+                                  onPressed: _openMakeFlashcards,
+                                  icon: const Icon(Icons.style_outlined, size: 18),
+                                  label: const Text('Make Flashcards'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primary,
+                                    side: const BorderSide(color: AppColors.primary),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (_cardCount > 0) ...[
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    key: const Key('study_flashcards_button'),
+                                    onPressed: _openStudyFlashcards,
+                                    icon: const Icon(Icons.school_outlined, size: 18),
+                                    label: Text('Study ($_cardCount)'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),

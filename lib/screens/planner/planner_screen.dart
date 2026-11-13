@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../ml/bkt_mastery.dart';
+import '../../models/flashcard.dart';
 import '../../models/study_session.dart';
+import '../../services/flashcard_service.dart';
 import '../../services/mastery_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/planner_service.dart';
 import '../../widgets/empty_state_view.dart';
+import '../materials/flashcard_study_screen.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import 'add_study_session_screen.dart';
 import 'notifications_list_screen.dart';
@@ -26,6 +29,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
 
   List<StudySession> _sessions = [];
   List<TopicMastery> _dueReviews = [];
+  List<Flashcard> _dueFlashcards = [];
   bool _isLoading = true;
 
   @override
@@ -39,6 +43,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
     final dayDate = _dates[_selectedDayIndex];
     final sessions = await PlannerService.getSessionsForDay(dayName, dayDate);
     final due = await MasteryService.tracker.getDueTopics();
+    final dueCards = await FlashcardService.getDueFlashcards();
     final filteredDue = due.where((m) {
       final expectedTitle = 'Review: ${m.topic}';
       return !sessions.any((s) => s.title == expectedTitle);
@@ -47,9 +52,24 @@ class _PlannerScreenState extends State<PlannerScreen> {
       setState(() {
         _sessions = sessions;
         _dueReviews = filteredDue;
+        _dueFlashcards = dueCards;
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _openDueFlashcardReview() async {
+    if (_dueFlashcards.isEmpty) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FlashcardStudyScreen(
+          title: 'Due Flashcards',
+          cards: _dueFlashcards,
+        ),
+      ),
+    );
+    await _loadSessions();
   }
 
   Future<void> _scheduleDueReview(TopicMastery review) async {
@@ -264,7 +284,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
               const SizedBox(height: 24),
 
               // SM-2 Reviews Due Section
-              if (_dueReviews.isNotEmpty) ...[
+              if (_dueReviews.isNotEmpty || _dueFlashcards.isNotEmpty) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -277,7 +297,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
                       ),
                     ),
                     Text(
-                      '${_dueReviews.length} due',
+                      '${_dueReviews.length + (_dueFlashcards.isNotEmpty ? 1 : 0)} due',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -287,6 +307,74 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
+                if (_dueFlashcards.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: InkWell(
+                      key: const Key('due_flashcards_card'),
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: _openDueFlashcardReview,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.primary.withOpacity(0.5),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Flashcards (${_dueFlashcards.length} due)',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'SM-2 review ready • Tap to practice',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Text(
+                                'Review',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ..._dueReviews.map((review) {
                   final masteryPct = (review.mastery * 100).round();
                   return Padding(
