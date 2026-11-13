@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/app_colors.dart';
+import '../../ml/question_attempt.dart';
+import '../../ml/topic_progress_analytics.dart';
+import '../../services/attempt_sync_service.dart';
+import '../../services/network_service.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../widgets/empty_state_view.dart';
+import '../../widgets/topic_trend_line.dart';
 import '../auth/welcome_screen.dart';
 import 'settings_screen.dart';
 import '../quiz/quiz_screen.dart';
@@ -19,6 +24,17 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _profile;
   List<Map<String, dynamic>> _quizScores = [];
+  List<TopicProgressData> _topicProgressList = [];
+
+  static const List<({String subject, String topic})> _coreTopics = [
+    (subject: 'Calculus', topic: 'Derivatives'),
+    (subject: 'Calculus', topic: 'Limits'),
+    (subject: 'Calculus', topic: 'Integrals'),
+    (subject: 'Biology', topic: 'Cell Structure'),
+    (subject: 'Biology', topic: 'Genetics'),
+    (subject: 'History', topic: 'World War II'),
+    (subject: 'Physics', topic: 'Newton’s Laws'),
+  ];
 
   @override
   void initState() {
@@ -51,10 +67,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final scores = await GuestScoreService.getScoresForUser(userId: user?.id);
 
+    // Load real question attempts for mastery-over-time trend lines
+    var attempts = await AttemptSyncService.logger.getAttempts(userId: user?.id);
+    if (attempts.isEmpty &&
+        user != null &&
+        SupabaseService.instance.isInitialized &&
+        await NetworkService.isOnline()) {
+      try {
+        final rows = await SupabaseService.instance.client
+            .from('question_attempts')
+            .select()
+            .eq('user_id', user.id)
+            .order('answered_at', ascending: true);
+        attempts = (rows as List)
+            .map((r) => QuestionAttempt.fromJson(Map<String, dynamic>.from(r as Map)))
+            .toList();
+      } catch (_) {}
+    }
+
+    // Build the list of topics: include topics with real attempts first,
+    // followed by core topics so zero-attempt topics display honest empty states.
+    final seen = <String>{};
+    final combinedTopics = <({String subject, String topic})>[];
+    for (final a in attempts) {
+      final key = '${a.subject.trim()}::${a.topic.trim()}';
+      if (seen.add(key)) {
+        combinedTopics.add((subject: a.subject.trim(), topic: a.topic.trim()));
+      }
+    }
+    for (final core in _coreTopics) {
+      final key = '${core.subject}::${core.topic}';
+      if (seen.add(key)) {
+        combinedTopics.add(core);
+      }
+    }
+
+    const analytics = TopicProgressAnalytics();
+    final progressList = combinedTopics.map((item) {
+      return analytics.computeTopicProgress(
+        subject: item.subject,
+        topic: item.topic,
+        attempts: attempts,
+      );
+    }).toList();
+
     if (mounted) {
       setState(() {
         _profile = profile;
         _quizScores = scores;
+        _topicProgressList = progressList;
       });
     }
   }
@@ -193,34 +254,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 24),
 
-              // Subject Mastery Header
-              const Text(
-                'Subject mastery',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
-                ),
+              // Topic Mastery & Analytics Section (Task 5.3)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text(
+                    'Topic mastery',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  Text(
+                    'Tap topic to practice',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 14),
 
-              _buildSubjectProgress(
-                subject: 'Calculus',
-                percentage: 78,
-                barColor: AppColors.success,
-              ),
-              const SizedBox(height: 12),
-              _buildSubjectProgress(
-                subject: 'Biology',
-                percentage: 62,
-                barColor: AppColors.accent,
-              ),
-              const SizedBox(height: 12),
-              _buildSubjectProgress(
-                subject: 'History',
-                percentage: 45,
-                barColor: AppColors.backgroundDark,
-              ),
+              ..._topicProgressList.map((progress) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: _buildTopicProgressCard(context, progress),
+                  )),
 
               const SizedBox(height: 28),
 
@@ -291,53 +351,114 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSubjectProgress({
-    required String subject,
-    required int percentage,
-    required Color barColor,
-  }) {
+  Widget _buildTopicProgressCard(
+    BuildContext context,
+    TopicProgressData data,
+  ) {
+    final hasAttempts = data.hasAttempts;
+    final masteryPercent = (data.currentMastery * 100).round();
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                subject,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: Key('topic_card_${data.topic}'),
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const TopicsQuizzesScreen()),
+            ).then((_) => _loadProfileAndScores());
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                // Left: Topic title and Subject
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              data.topic,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceMuted,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              data.subject,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      if (hasAttempts)
+                        Text(
+                          '$masteryPercent% mastery • ${data.totalAttempts} ${data.totalAttempts == 1 ? 'attempt' : 'attempts'}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        )
+                      else
+                        const Text(
+                          'No attempts yet',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              Text(
-                '$percentage%',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+
+                const SizedBox(width: 12),
+
+                // Right: Sparkline Trend Line or Empty State indicator
+                if (hasAttempts) ...[
+                  TopicTrendLine(
+                    key: Key('topic_trend_${data.topic}'),
+                    points: data.points,
+                    isImproving: data.isImproving,
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 13,
+                  color: AppColors.textSecondary,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: percentage / 100.0,
-              minHeight: 6,
-              backgroundColor: AppColors.border,
-              valueColor: AlwaysStoppedAnimation<Color>(barColor),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
