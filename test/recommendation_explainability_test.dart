@@ -87,6 +87,23 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(expectedReason), findsOneWidget);
+      expect(find.text('Take your first quiz to get your study plan'), findsNothing);
+      expect(find.text('Retake'), findsOneWidget);
+    });
+
+    testWidgets('RecommendationsHubScreen displays empty state when user has no recommendations', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      RecommendationEngine.useBktMastery = true;
+
+      await tester.pumpWidget(
+        const MaterialApp(home: RecommendationsHubScreen()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Take your first quiz to get your study plan'), findsOneWidget);
+      expect(find.text('Complete a quiz to unlock personalized topic recommendations.'), findsOneWidget);
+      expect(find.widgetWithText(ElevatedButton, 'Take Assessment'), findsOneWidget);
+      expect(find.text('Retake'), findsNothing);
     });
 
     test('signed-in user wrongCount and reason reflect user attempts when guest store is empty', () async {

@@ -69,42 +69,6 @@ class RecommendationEngine {
     return 'Low';
   }
 
-  // Fallback defaults if user has not yet taken any quizzes
-  static final List<RecommendationItem> defaultRecommendations = [
-    RecommendationItem(
-      topic: 'Derivatives',
-      subject: 'Calculus',
-      priority: 'High priority',
-      timeEstimate: '8 min',
-      wrongCount: 0,
-      lastAttempt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    RecommendationItem(
-      topic: 'Forces & Laws',
-      subject: 'Physics',
-      priority: 'Medium',
-      timeEstimate: '6 min',
-      wrongCount: 0,
-      lastAttempt: DateTime.now().subtract(const Duration(days: 3)),
-    ),
-    RecommendationItem(
-      topic: 'WW2 Causes',
-      subject: 'History',
-      priority: 'Low',
-      timeEstimate: '10 min',
-      wrongCount: 0,
-      lastAttempt: DateTime.now().subtract(const Duration(days: 5)),
-    ),
-    RecommendationItem(
-      topic: 'Cell Structure',
-      subject: 'Biology',
-      priority: 'Low',
-      timeEstimate: '7 min',
-      wrongCount: 0,
-      lastAttempt: DateTime.now().subtract(const Duration(days: 6)),
-    ),
-  ];
-
   /// Record question outcome for a topic
   static Future<void> recordAnswer({
     required String subject,

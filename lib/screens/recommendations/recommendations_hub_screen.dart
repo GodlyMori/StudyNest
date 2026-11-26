@@ -151,12 +151,15 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
                     ),
                     const SizedBox(height: 14),
 
-                    ..._recommendations.map((item) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: _buildRecommendationCard(context, item),
-                      );
-                    }),
+                    if (_recommendations.isEmpty)
+                      _buildEmptyStateCard(context)
+                    else
+                      ..._recommendations.map((item) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: _buildRecommendationCard(context, item),
+                        );
+                      }),
 
                     const SizedBox(height: 24),
                   ],
@@ -273,6 +276,73 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(Icons.assignment_outlined, size: 36, color: AppColors.primary),
+          const SizedBox(height: 10),
+          const Text(
+            'Take your first quiz to get your study plan',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Complete a quiz to unlock personalized topic recommendations.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Semantics(
+            button: true,
+            label: 'Take Assessment',
+            child: ElevatedButton(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const QuizScreen()),
+                );
+                _loadRecommendations();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: AppColors.textDark,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                minimumSize: const Size(180, 44),
+              ),
+              child: const Text(
+                'Take Assessment',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
               ),
             ),
