@@ -192,8 +192,12 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 10),
 
               // Full-Bleed Mascot Interactive Banner (Matching Figma prototype 1:1)
-              GestureDetector(
-                onTap: () {
+              Semantics(
+                button: true,
+                label: 'Open Owl Chat',
+                excludeSemantics: true,
+                child: GestureDetector(
+                  onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const OwlChatScreen()),
@@ -326,6 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+            ),
 
               const SizedBox(height: 20),
 

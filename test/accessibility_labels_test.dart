@@ -38,6 +38,7 @@ void main() {
       expect(find.bySemanticsLabel(RegExp(r'Browse Materials')), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp(r'View all recommendations')), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp(r'Take Calculus quiz')), findsOneWidget);
+      expect(find.bySemanticsLabel('Open Owl Chat'), findsOneWidget);
       handle.dispose();
     });
 

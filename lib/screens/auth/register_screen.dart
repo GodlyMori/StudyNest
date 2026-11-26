@@ -154,7 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const Text(
                 'Join StudyNest and start learning smarter.',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   color: AppColors.textSecondary,
                 ),
               ),
