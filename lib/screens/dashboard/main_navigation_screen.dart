@@ -62,20 +62,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         index: _currentIndex,
         children: screens,
       ),
-      floatingActionButton: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const OwlChatScreen()),
-          );
-        },
-        child: SizedBox(
-          width: 60,
-          height: 60,
-          child: Image.asset(
-            AppAssets.owlThinking,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => const SizedBox(),
+      floatingActionButton: Semantics(
+        button: true,
+        label: 'Chat with Owl AI',
+        child: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const OwlChatScreen()),
+            );
+          },
+          child: SizedBox(
+            width: 60,
+            height: 60,
+            child: Image.asset(
+              AppAssets.owlThinking,
+              fit: BoxFit.contain,
+              excludeFromSemantics: true,
+              errorBuilder: (context, error, stackTrace) => const SizedBox(),
+            ),
           ),
         ),
       ),
@@ -102,39 +107,44 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
 
   Widget _buildNavItem(int index, String label, IconData icon) {
     final isSelected = _currentIndex == index;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _onTabSelected(index),
-      child: SizedBox(
-        width: 72,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Active indicator bar from Figma
-            Container(
-              width: 20,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.accent : const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(2),
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: '$label tab',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _onTabSelected(index),
+        child: SizedBox(
+          width: 72,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Active indicator bar from Figma
+              Container(
+                width: 20,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.accent : const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected ? AppColors.textDark : AppColors.textSecondary,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              const SizedBox(height: 6),
+              Icon(
+                icon,
+                size: 20,
                 color: isSelected ? AppColors.textDark : AppColors.textSecondary,
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? AppColors.textDark : AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

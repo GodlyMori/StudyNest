@@ -207,14 +207,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: AppColors.textDark,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.settings_outlined, color: AppColors.textDark),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                      ).then((_) => _loadProfileAndScores());
-                    },
+                  Semantics(
+                    button: true,
+                    label: 'Open settings',
+                    child: IconButton(
+                      tooltip: 'Open settings',
+                      icon: const Icon(Icons.settings_outlined, color: AppColors.textDark),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                        ).then((_) => _loadProfileAndScores());
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -562,13 +567,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final hasAttempts = data.hasAttempts;
     final masteryPercent = (data.currentMastery * 100).round();
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
+    return Semantics(
+      button: true,
+      label: 'Practice ${data.topic} quiz',
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -664,6 +672,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -704,21 +713,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => QuizScreen(subject: title),
+          Semantics(
+            button: true,
+            label: 'Retake $title quiz',
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => QuizScreen(subject: title),
+                  ),
+                ).then((_) => _loadProfileAndScores());
+              },
+              child: const Text(
+                'Retake',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.success,
                 ),
-              ).then((_) => _loadProfileAndScores());
-            },
-            child: const Text(
-              'Retake',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: AppColors.success,
               ),
             ),
           ),

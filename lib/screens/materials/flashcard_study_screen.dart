@@ -94,9 +94,14 @@ class _FlashcardStudyScreenState extends State<FlashcardStudyScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.textDark),
-          onPressed: () => Navigator.pop(context),
+        leading: Semantics(
+          button: true,
+          label: 'Close flashcards',
+          child: IconButton(
+            tooltip: 'Close flashcards',
+            icon: const Icon(Icons.close, color: AppColors.textDark),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         title: Text(
           '${widget.title} (${_currentIndex + 1}/${widget.cards.length})',
@@ -124,30 +129,33 @@ class _FlashcardStudyScreenState extends State<FlashcardStudyScreen> {
 
               // Interactive Flip Card
               Expanded(
-                child: GestureDetector(
-                  key: const Key('flashcard_flip_target'),
-                  onTap: _flip,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(28),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: _isFlipped ? AppColors.accent : AppColors.border,
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
+                child: Semantics(
+                  button: true,
+                  label: 'Flip flashcard',
+                  child: GestureDetector(
+                    key: const Key('flashcard_flip_target'),
+                    onTap: _flip,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: _isFlipped ? AppColors.accent : AppColors.border,
+                          width: 2,
                         ),
-                      ],
-                    ),
-                    child: Column(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
@@ -216,6 +224,7 @@ class _FlashcardStudyScreenState extends State<FlashcardStudyScreen> {
                   ),
                 ),
               ),
+            ),
 
               const SizedBox(height: 24),
 
@@ -269,21 +278,26 @@ class _FlashcardStudyScreenState extends State<FlashcardStudyScreen> {
                 SizedBox(
                   width: double.infinity,
                   height: 48,
-                  child: ElevatedButton(
-                    onPressed: _flip,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                  child: Semantics(
+                    button: true,
+                    label: 'Show Answer',
+                    excludeSemantics: true,
+                    child: ElevatedButton(
+                      onPressed: _flip,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
                       ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Show Answer',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                      child: const Text(
+                        'Show Answer',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -302,35 +316,39 @@ class _FlashcardStudyScreenState extends State<FlashcardStudyScreen> {
     required Color color,
   }) {
     return Expanded(
-      child: InkWell(
-        onTap: () => _score(quality),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.4)),
-          ),
-          child: Column(
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+      child: Semantics(
+        button: true,
+        label: 'Rate $label',
+        child: InkWell(
+          onTap: () => _score(quality),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: color.withOpacity(0.4)),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                sub,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: color.withOpacity(0.8),
+                const SizedBox(height: 2),
+                Text(
+                  sub,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: color.withOpacity(0.8),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

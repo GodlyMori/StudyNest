@@ -68,9 +68,14 @@ class _OwlChatScreenState extends State<OwlChatScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+        leading: Semantics(
+          button: true,
+          label: 'Back',
+          child: IconButton(
+            tooltip: 'Back',
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         title: Row(
           children: [
@@ -80,6 +85,7 @@ class _OwlChatScreenState extends State<OwlChatScreen> {
               child: Image.asset(
                 AppAssets.owlThinking,
                 fit: BoxFit.contain,
+                excludeFromSemantics: true,
                 errorBuilder: (context, error, stackTrace) => const SizedBox(),
               ),
             ),
@@ -171,23 +177,27 @@ class _OwlChatScreenState extends State<OwlChatScreen> {
                   ..._suggestions.map((suggestion) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
-                      child: GestureDetector(
-                        onTap: () => _sendMessage(suggestion),
-                        child: Container(
-                          width: double.infinity,
-                          height: 42,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF334155),
-                            borderRadius: BorderRadius.circular(21),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            suggestion,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
+                      child: Semantics(
+                        button: true,
+                        label: 'Ask Owl: $suggestion',
+                        child: GestureDetector(
+                          onTap: () => _sendMessage(suggestion),
+                          child: Container(
+                            width: double.infinity,
+                            height: 42,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF334155),
+                              borderRadius: BorderRadius.circular(21),
+                            ),
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              suggestion,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -214,6 +224,7 @@ class _OwlChatScreenState extends State<OwlChatScreen> {
                       child: TextField(
                         controller: _controller,
                         decoration: const InputDecoration(
+                          labelText: 'Ask Owl a question',
                           hintText: 'Ask Owl anything…',
                           hintStyle: TextStyle(
                             fontSize: 14,
@@ -229,20 +240,24 @@ class _OwlChatScreenState extends State<OwlChatScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () => _sendMessage(_controller.text),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          color: AppColors.accent,
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.arrow_forward,
-                          color: AppColors.textDark,
-                          size: 20,
+                    Semantics(
+                      button: true,
+                      label: 'Send message to Owl',
+                      child: GestureDetector(
+                        onTap: () => _sendMessage(_controller.text),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            color: AppColors.accent,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.arrow_forward,
+                            color: AppColors.textDark,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ),

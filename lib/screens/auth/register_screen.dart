@@ -110,23 +110,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         leadingWidth: 100,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: const Padding(
-            padding: EdgeInsets.only(left: 20.0),
-            child: Row(
-              children: [
-                Icon(Icons.arrow_back, size: 18, color: AppColors.textSecondary),
-                SizedBox(width: 4),
-                Text(
-                  'Back',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
+        leading: Semantics(
+          button: true,
+          label: 'Back',
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: const Padding(
+              padding: EdgeInsets.only(left: 20.0),
+              child: Row(
+                children: [
+                  Icon(Icons.arrow_back, size: 18, color: AppColors.textSecondary),
+                  SizedBox(width: 4),
+                  Text(
+                    'Back',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -150,7 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const Text(
                 'Join StudyNest and start learning smarter.',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 15,
                   color: AppColors.textSecondary,
                 ),
               ),
@@ -170,6 +174,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextField(
                 controller: _nameController,
                 decoration: const InputDecoration(
+                  labelText: 'Full name',
                   hintText: 'Alvin Legarbes',
                   prefixIcon: Icon(Icons.person_outline, size: 20, color: AppColors.textSecondary),
                 ),
@@ -191,6 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
+                  labelText: 'Email',
                   hintText: 'you@example.com',
                   prefixIcon: Icon(Icons.mail_outline, size: 20, color: AppColors.textSecondary),
                 ),
@@ -212,9 +218,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
+                  labelText: 'Password',
                   hintText: 'Choose a password',
                   prefixIcon: const Icon(Icons.lock_outline, size: 20, color: AppColors.textSecondary),
                   suffixIcon: IconButton(
+                    tooltip: _obscurePassword ? 'Show password' : 'Hide password',
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                       size: 20,
@@ -257,22 +265,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     elevation: 0,
                   ),
                   onPressed: _isLoading ? null : _handleRegister,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.textDark,
+                  child: Semantics(
+                    button: true,
+                    label: 'Create Account',
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.textDark,
+                            ),
+                          )
+                        : const Text(
+                            'Create Account',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Create Account',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  ),
                 ),
               ),
 
@@ -280,31 +292,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               // Login Link
               Center(
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                    );
-                  },
-                  child: RichText(
-                    text: const TextSpan(
-                      text: 'Already have an account? ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: 'Log in',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                          ),
+                child: Semantics(
+                  button: true,
+                  label: 'Log in to existing account',
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
                         ),
-                      ],
+                      );
+                    },
+                    child: RichText(
+                      text: const TextSpan(
+                        text: 'Already have an account? ',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Log in',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

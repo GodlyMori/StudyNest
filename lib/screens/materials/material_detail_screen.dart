@@ -146,6 +146,7 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context, _isDownloaded),
         ),
@@ -160,7 +161,7 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            tooltip: _isDownloaded ? 'Downloaded (Tap to remove)' : 'Download offline',
+            tooltip: _isDownloaded ? 'Remove from offline downloads' : 'Download for offline use',
             icon: Icon(
               _isDownloaded ? Icons.check_circle : Icons.download_outlined,
               color: _isDownloaded ? AppColors.success : AppColors.textDark,
@@ -287,17 +288,21 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: OutlinedButton.icon(
-                                  key: const Key('make_flashcards_button'),
-                                  onPressed: _openMakeFlashcards,
-                                  icon: const Icon(Icons.style_outlined, size: 18),
-                                  label: const Text('Make Flashcards'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.primary,
-                                    side: const BorderSide(color: AppColors.primary),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                child: Semantics(
+                                  button: true,
+                                  label: 'Make Flashcards',
+                                  child: OutlinedButton.icon(
+                                    key: const Key('make_flashcards_button'),
+                                    onPressed: _openMakeFlashcards,
+                                    icon: const Icon(Icons.style_outlined, size: 18),
+                                    label: const Text('Make Flashcards'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.primary,
+                                      side: const BorderSide(color: AppColors.primary),
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -305,19 +310,23 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
                               if (_cardCount > 0) ...[
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: ElevatedButton.icon(
-                                    key: const Key('study_flashcards_button'),
-                                    onPressed: _openStudyFlashcards,
-                                    icon: const Icon(Icons.school_outlined, size: 18),
-                                    label: Text('Study ($_cardCount)'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                  child: Semantics(
+                                    button: true,
+                                    label: 'Study Flashcards',
+                                    child: ElevatedButton.icon(
+                                      key: const Key('study_flashcards_button'),
+                                      onPressed: _openStudyFlashcards,
+                                      icon: const Icon(Icons.school_outlined, size: 18),
+                                      label: Text('Study ($_cardCount)'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        elevation: 0,
                                       ),
-                                      elevation: 0,
                                     ),
                                   ),
                                 ),

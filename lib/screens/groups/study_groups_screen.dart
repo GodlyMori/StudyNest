@@ -137,20 +137,25 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                       color: AppColors.textDark,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const OwlChatScreen()),
-                      );
-                    },
-                    child: SizedBox(
-                      width: 46,
-                      height: 46,
-                      child: Image.asset(
-                        AppAssets.owlWaving,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                  Semantics(
+                    button: true,
+                    label: 'Chat with Owl AI',
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OwlChatScreen()),
+                        );
+                      },
+                      child: SizedBox(
+                        width: 46,
+                        height: 46,
+                        child: Image.asset(
+                          AppAssets.owlWaving,
+                          fit: BoxFit.contain,
+                          excludeFromSemantics: true,
+                          errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                        ),
                       ),
                     ),
                   ),
@@ -163,24 +168,29 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _selectedTab = 0),
-                      child: Container(
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: _selectedTab == 0 ? AppColors.backgroundDark : Colors.white,
-                          borderRadius: BorderRadius.circular(19),
-                          border: Border.all(
-                            color: _selectedTab == 0 ? Colors.transparent : AppColors.border,
+                    child: Semantics(
+                      button: true,
+                      selected: _selectedTab == 0,
+                      label: 'My Groups tab',
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedTab = 0),
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 0 ? AppColors.backgroundDark : Colors.white,
+                            borderRadius: BorderRadius.circular(19),
+                            border: Border.all(
+                              color: _selectedTab == 0 ? Colors.transparent : AppColors.border,
+                            ),
                           ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'My Groups',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: _selectedTab == 0 ? Colors.white : AppColors.textDark,
+                          alignment: Alignment.center,
+                          child: Text(
+                            'My Groups',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: _selectedTab == 0 ? Colors.white : AppColors.textDark,
+                            ),
                           ),
                         ),
                       ),
@@ -188,24 +198,29 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _selectedTab = 1),
-                      child: Container(
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: _selectedTab == 1 ? AppColors.backgroundDark : Colors.white,
-                          borderRadius: BorderRadius.circular(19),
-                          border: Border.all(
-                            color: _selectedTab == 1 ? Colors.transparent : AppColors.border,
+                    child: Semantics(
+                      button: true,
+                      selected: _selectedTab == 1,
+                      label: 'Discover tab',
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedTab = 1),
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 1 ? AppColors.backgroundDark : Colors.white,
+                            borderRadius: BorderRadius.circular(19),
+                            border: Border.all(
+                              color: _selectedTab == 1 ? Colors.transparent : AppColors.border,
+                            ),
                           ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Discover',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: _selectedTab == 1 ? Colors.white : AppColors.textDark,
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Discover',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: _selectedTab == 1 ? Colors.white : AppColors.textDark,
+                            ),
                           ),
                         ),
                       ),
@@ -413,22 +428,26 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                                 ],
                               ),
                             ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.accent,
-                                foregroundColor: AppColors.textDark,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
+                            Semantics(
+                              button: true,
+                              label: 'Join ${group.name}',
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.accent,
+                                  foregroundColor: AppColors.textDark,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 ),
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              ),
-                              onPressed: () => _handleJoin(group),
-                              child: const Text(
-                                'Join',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                onPressed: () => _handleJoin(group),
+                                child: const Text(
+                                  'Join',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ),
                             ),
@@ -445,21 +464,26 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.textDark,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+                child: Semantics(
+                  button: true,
+                  label: 'Create Study Group',
+                  excludeSemantics: true,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: AppColors.textDark,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  onPressed: _openCreateGroup,
-                  child: const Text(
-                    '+ Create Study Group',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                    onPressed: _openCreateGroup,
+                    child: const Text(
+                      '+ Create Study Group',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -471,21 +495,26 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(color: AppColors.textDark),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+                child: Semantics(
+                  button: true,
+                  label: 'Find Users to Invite',
+                  excludeSemantics: true,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: AppColors.textDark),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
                     ),
-                  ),
-                  onPressed: _openFindUsers,
-                  child: const Text(
-                    'Find Users to Invite',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+                    onPressed: _openFindUsers,
+                    child: const Text(
+                      'Find Users to Invite',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
                     ),
                   ),
                 ),
@@ -497,21 +526,26 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 48,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(color: AppColors.textDark),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                child: Semantics(
+                  button: true,
+                  label: 'View Invites',
+                  excludeSemantics: true,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: AppColors.textDark),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                  ),
-                  onPressed: _openInvites,
-                  child: Text(
-                    'View Invites ($_pendingInvitesCount)',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+                    onPressed: _openInvites,
+                    child: Text(
+                      'View Invites ($_pendingInvitesCount)',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
                     ),
                   ),
                 ),
@@ -531,18 +565,21 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
     required Color statusColor,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
+    return Semantics(
+      button: true,
+      label: 'Open $title',
+      child: Material(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          height: 80,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Container(
+            width: double.infinity,
+            height: 80,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.border),
           ),
           child: Row(
@@ -582,6 +619,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

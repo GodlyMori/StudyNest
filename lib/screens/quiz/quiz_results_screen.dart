@@ -54,6 +54,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
@@ -64,6 +65,7 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
               AppAssets.owlCelebrating,
               width: 48,
               height: 48,
+              excludeFromSemantics: true,
               errorBuilder: (context, error, stackTrace) => const SizedBox(),
             ),
           ),
@@ -156,73 +158,77 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.border),
                 ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    key: const Key('review_questions_button'),
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => QuizReviewScreen(
-                            subject: widget.subject,
-                            reviewItems: widget.reviewItems ?? [],
+                child: Semantics(
+                  button: true,
+                  label: 'Review questions',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      key: const Key('review_questions_button'),
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => QuizReviewScreen(
+                              subject: widget.subject,
+                              reviewItems: widget.reviewItems ?? [],
+                            ),
                           ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceMuted,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.rate_review_outlined,
+                                    color: AppColors.textDark,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Review Questions',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textDark,
+                                      ),
+                                    ),
+                                    Text(
+                                      (widget.reviewItems != null && widget.reviewItems!.isNotEmpty)
+                                          ? '${widget.reviewItems!.length} questions answered'
+                                          : 'View detailed explanations',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 14,
+                              color: AppColors.textSecondary,
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceMuted,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.rate_review_outlined,
-                                  color: AppColors.textDark,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Review Questions',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textDark,
-                                    ),
-                                  ),
-                                  Text(
-                                    (widget.reviewItems != null && widget.reviewItems!.isNotEmpty)
-                                        ? '${widget.reviewItems!.length} questions answered'
-                                        : 'View detailed explanations',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 14,
-                            color: AppColors.textSecondary,
-                          ),
-                        ],
                       ),
                     ),
                   ),
@@ -259,22 +265,26 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: () {
-                        // Actually start the plan (navigates to Materials per Figma)
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MaterialsScreen(),
+                    Semantics(
+                      button: true,
+                      label: 'Start recommended review plan',
+                      child: GestureDetector(
+                        onTap: () {
+                          // Actually start the plan (navigates to Materials per Figma)
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MaterialsScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Start plan →',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.accent,
                           ),
-                        );
-                      },
-                      child: const Text(
-                        'Start plan →',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.accent,
                         ),
                       ),
                     ),
@@ -285,32 +295,36 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
               const SizedBox(height: 28),
 
               // ML Recommendations Hub Header (clickable)
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RecommendationsHubScreen(),
-                    ),
-                  ).then((_) => _loadRecommendations());
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      'ML Recommendations Hub',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+              Semantics(
+                button: true,
+                label: 'Open ML Recommendations Hub',
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RecommendationsHubScreen(),
                       ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
+                    ).then((_) => _loadRecommendations());
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text(
+                        'ML Recommendations Hub',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -401,21 +415,25 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => QuizScreen(subject: subject),
+          Semantics(
+            button: true,
+            label: 'Retake $subject quiz',
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => QuizScreen(subject: subject),
+                  ),
+                ).then((_) => _loadRecommendations());
+              },
+              child: Text(
+                actionLabel,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: actionColor,
                 ),
-              ).then((_) => _loadRecommendations());
-            },
-            child: Text(
-              actionLabel,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: actionColor,
               ),
             ),
           ),

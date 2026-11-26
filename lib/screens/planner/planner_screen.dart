@@ -154,33 +154,42 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   ),
                   Row(
                     children: [
-                      IconButton(
-                        tooltip: 'Scheduled Reminders',
-                        icon: const Icon(
-                          Icons.notifications_outlined,
-                          color: AppColors.textDark,
-                          size: 24,
+                      Semantics(
+                        button: true,
+                        label: 'View scheduled reminders',
+                        child: IconButton(
+                          tooltip: 'View scheduled reminders',
+                          icon: const Icon(
+                            Icons.notifications_outlined,
+                            color: AppColors.textDark,
+                            size: 24,
+                          ),
+                          onPressed: _openNotificationsList,
                         ),
-                        onPressed: _openNotificationsList,
                       ),
                       const SizedBox(width: 4),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const OwlChatScreen(),
+                      Semantics(
+                        button: true,
+                        label: 'Chat with Owl AI',
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const OwlChatScreen(),
+                              ),
+                            );
+                          },
+                          child: SizedBox(
+                            width: 46,
+                            height: 46,
+                            child: Image.asset(
+                              AppAssets.owlSitting,
+                              fit: BoxFit.contain,
+                              excludeFromSemantics: true,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const SizedBox(),
                             ),
-                          );
-                        },
-                        child: SizedBox(
-                          width: 46,
-                          height: 46,
-                          child: Image.asset(
-                            AppAssets.owlSitting,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const SizedBox(),
                           ),
                         ),
                       ),
@@ -203,37 +212,42 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: List.generate(_days.length, (index) {
                     final isSelected = _selectedDayIndex == index;
-                    return GestureDetector(
-                      onTap: () => _onDaySelected(index),
-                      child: Container(
-                        width: 42,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppColors.accent : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              _days[index],
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: isSelected
-                                    ? AppColors.textDark
-                                    : AppColors.textSecondary,
+                    return Semantics(
+                      button: true,
+                      selected: isSelected,
+                      label: 'Select ${_days[index]}, ${_dates[index]} November',
+                      child: GestureDetector(
+                        onTap: () => _onDaySelected(index),
+                        child: Container(
+                          width: 42,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.accent : Colors.transparent,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                _days[index],
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected
+                                      ? AppColors.textDark
+                                      : AppColors.textSecondary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _dates[index],
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textDark,
+                              const SizedBox(height: 4),
+                              Text(
+                                _dates[index],
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textDark,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -310,67 +324,71 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 if (_dueFlashcards.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10.0),
-                    child: InkWell(
-                      key: const Key('due_flashcards_card'),
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: _openDueFlashcardReview,
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.primary.withOpacity(0.5),
+                    child: Semantics(
+                      button: true,
+                      label: 'Review ${_dueFlashcards.length} due flashcards',
+                      child: InkWell(
+                        key: const Key('due_flashcards_card'),
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: _openDueFlashcardReview,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Flashcards (${_dueFlashcards.length} due)',
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textDark,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'SM-2 review ready • Tap to practice',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.primary.withOpacity(0.5),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Text(
-                                'Review',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Flashcards (${_dueFlashcards.length} due)',
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'SM-2 review ready • Tap to practice',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                          ],
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Text(
+                                  'Review',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -576,21 +594,25 @@ class _PlannerScreenState extends State<PlannerScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 54,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.textDark,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+                child: Semantics(
+                  button: true,
+                  label: 'Add study session',
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: AppColors.textDark,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  onPressed: _openAddSessionScreen,
-                  child: const Text(
-                    '+ Add Study Session',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                    onPressed: _openAddSessionScreen,
+                    child: const Text(
+                      '+ Add Study Session',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

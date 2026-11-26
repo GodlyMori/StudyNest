@@ -23,6 +23,7 @@ class NoConnectionScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
@@ -95,11 +96,15 @@ class NoConnectionScreen extends StatelessWidget {
                       }
                       Navigator.of(context).maybePop();
                     },
-                    child: const Text(
-                      'Retry',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                    child: Semantics(
+                      button: true,
+                      label: 'Retry connection',
+                      child: const Text(
+                        'Retry',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),

@@ -57,9 +57,13 @@ class WelcomeScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const RegisterScreen()),
                     );
                   },
-                  child: const Text(
-                    'Create Account',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  child: Semantics(
+                    button: true,
+                    label: 'Create Account',
+                    child: const Text(
+                      'Create Account',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ),
@@ -82,9 +86,13 @@ class WelcomeScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
                     );
                   },
-                  child: const Text(
-                    'Continue as Guest',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  child: Semantics(
+                    button: true,
+                    label: 'Continue as Guest',
+                    child: const Text(
+                      'Continue as Guest',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ),
               ),
@@ -160,6 +168,7 @@ class WelcomeScreen extends StatelessWidget {
                   AppAssets.owlHero,
                   fit: BoxFit.contain,
                   alignment: Alignment.center,
+                  excludeFromSemantics: true,
                   errorBuilder: (context, error, stackTrace) => const SizedBox(),
                 ),
               ),
@@ -277,11 +286,15 @@ class WelcomeScreen extends StatelessWidget {
                                 ),
                               );
                             },
-                            child: const Text(
-                              'Get Started',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            child: Semantics(
+                              button: true,
+                              label: 'Get Started',
+                              child: const Text(
+                                'Get Started',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
@@ -303,11 +316,15 @@ class WelcomeScreen extends StatelessWidget {
                               elevation: 0,
                             ),
                             onPressed: () => _showGuestPrompt(context),
-                            child: const Text(
-                              'Continue as Guest',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                            child: Semantics(
+                              button: true,
+                              label: 'Continue as Guest',
+                              child: const Text(
+                                'Continue as Guest',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
@@ -316,21 +333,25 @@ class WelcomeScreen extends StatelessWidget {
                         const SizedBox(height: 18),
 
                         // Already have an account? Log in
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
+                        Semantics(
+                          button: true,
+                          label: 'Log in to existing account',
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'Already have an account? Log in',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textLightMuted,
                               ),
-                            );
-                          },
-                          child: const Text(
-                            'Already have an account? Log in',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textLightMuted,
                             ),
                           ),
                         ),

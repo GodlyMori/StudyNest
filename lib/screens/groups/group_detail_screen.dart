@@ -462,6 +462,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context, true),
         ),
@@ -567,29 +568,33 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           SizedBox(
                             width: double.infinity,
                             height: 48,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _group.isJoined
-                                    ? AppColors.primary
-                                    : AppColors.accent,
-                                foregroundColor: _group.isJoined
-                                    ? Colors.white
-                                    : AppColors.textDark,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                            child: Semantics(
+                              button: true,
+                              label: _group.isJoined ? 'Open Group Chat' : 'Join Group',
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _group.isJoined
+                                      ? AppColors.primary
+                                      : AppColors.accent,
+                                  foregroundColor: _group.isJoined
+                                      ? Colors.white
+                                      : AppColors.textDark,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
                                 ),
-                                elevation: 0,
-                              ),
-                              onPressed: _group.isJoined ? _openChat : _handleJoin,
-                              icon: Icon(
-                                _group.isJoined ? Icons.chat_bubble_outline : Icons.group_add,
-                                size: 18,
-                              ),
-                              label: Text(
-                                _group.isJoined ? 'Open Group Chat' : 'Join Group',
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
+                                onPressed: _group.isJoined ? _openChat : _handleJoin,
+                                icon: Icon(
+                                  _group.isJoined ? Icons.chat_bubble_outline : Icons.group_add,
+                                  size: 18,
+                                ),
+                                label: Text(
+                                  _group.isJoined ? 'Open Group Chat' : 'Join Group',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),

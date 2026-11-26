@@ -70,6 +70,7 @@ class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context, true),
         ),
@@ -198,11 +199,15 @@ class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
                                         ),
                                       ),
                                       onPressed: () => _handleResponse(invite, false),
-                                      child: const Text(
-                                        'Decline',
-                                        style: TextStyle(
-                                          color: AppColors.textSecondary,
-                                          fontWeight: FontWeight.w600,
+                                      child: Semantics(
+                                        button: true,
+                                        label: 'Decline invite to ${invite.groupName}',
+                                        child: const Text(
+                                          'Decline',
+                                          style: TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -220,10 +225,14 @@ class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
                                         ),
                                       ),
                                       onPressed: () => _handleResponse(invite, true),
-                                      child: const Text(
-                                        'Accept',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
+                                      child: Semantics(
+                                        button: true,
+                                        label: 'Accept invite to ${invite.groupName}',
+                                        child: const Text(
+                                          'Accept',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
                                     ),

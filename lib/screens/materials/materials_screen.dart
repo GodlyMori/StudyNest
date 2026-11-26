@@ -130,23 +130,28 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                       color: AppColors.textDark,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const OwlChatScreen(),
+                  Semantics(
+                    button: true,
+                    label: 'Chat with Owl AI',
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OwlChatScreen(),
+                          ),
+                        );
+                      },
+                      child: SizedBox(
+                        width: 46,
+                        height: 46,
+                        child: Image.asset(
+                          AppAssets.owlReading,
+                          fit: BoxFit.contain,
+                          excludeFromSemantics: true,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const SizedBox(),
                         ),
-                      );
-                    },
-                    child: SizedBox(
-                      width: 46,
-                      height: 46,
-                      child: Image.asset(
-                        AppAssets.owlReading,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const SizedBox(),
                       ),
                     ),
                   ),
@@ -177,6 +182,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                         controller: _searchController,
                         decoration: const InputDecoration(
                           hintText: 'Search notes, cheat sheets…',
+                          labelText: 'Search study materials',
                           hintStyle: TextStyle(
                             fontSize: 14,
                             color: AppColors.textSecondary,
@@ -197,14 +203,18 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                       ),
                     ),
                     if (_searchQuery.isNotEmpty)
-                      GestureDetector(
-                        onTap: _clearSearch,
-                        child: const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: Icon(
-                            Icons.close,
-                            size: 18,
-                            color: AppColors.textSecondary,
+                      Semantics(
+                        button: true,
+                        label: 'Clear search',
+                        child: GestureDetector(
+                          onTap: _clearSearch,
+                          child: const Padding(
+                            padding: EdgeInsets.all(4.0),
+                            child: Icon(
+                              Icons.close,
+                              size: 18,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ),
                       ),
@@ -222,35 +232,40 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                     final isSelected = _selectedCategoryIndex == index;
                     return Padding(
                       padding: const EdgeInsets.only(right: 10.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedCategoryIndex = index;
-                          });
-                        },
-                        child: Container(
-                          height: 34,
-                          padding: const EdgeInsets.symmetric(horizontal: 18),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.backgroundDark
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(17),
-                            border: Border.all(
+                      child: Semantics(
+                        button: true,
+                        selected: isSelected,
+                        label: '${_categories[index]} category',
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedCategoryIndex = index;
+                            });
+                          },
+                          child: Container(
+                            height: 34,
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                            decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.transparent
-                                  : AppColors.border,
+                                  ? AppColors.backgroundDark
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(17),
+                              border: Border.all(
+                                color: isSelected
+                                    ? Colors.transparent
+                                    : AppColors.border,
+                              ),
                             ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            _categories[index],
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.textDark,
+                            alignment: Alignment.center,
+                            child: Text(
+                              _categories[index],
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.textDark,
+                              ),
                             ),
                           ),
                         ),
@@ -297,80 +312,84 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                   final isDownloaded = _downloadedIds.contains(material.id);
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      child: InkWell(
+                    child: Semantics(
+                      button: true,
+                      label: 'Open ${material.title}',
+                      child: Material(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        onTap: () => _openMaterialDetail(material),
-                        child: Container(
-                          height: 84,
-                          padding: const EdgeInsets.symmetric(horizontal: 18),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => _openMaterialDetail(material),
+                          child: Container(
+                            height: 84,
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        material.title,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textDark,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        material.meta,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      material.title,
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textDark,
+                                      isDownloaded
+                                          ? 'Downloaded'
+                                          : 'Needs Internet',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDownloaded
+                                            ? AppColors.success
+                                            : AppColors.textSecondary,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      material.meta,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        color: AppColors.textSecondary,
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      tooltip: isDownloaded
+                                          ? 'Downloaded (Tap to remove)'
+                                          : 'Download offline',
+                                      icon: Icon(
+                                        isDownloaded
+                                            ? Icons.check_circle
+                                            : Icons.download_outlined,
+                                        size: 20,
+                                        color: isDownloaded
+                                            ? AppColors.success
+                                            : AppColors.textSecondary,
                                       ),
+                                      onPressed: () => _toggleDownload(material),
                                     ),
                                   ],
                                 ),
-                              ),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    isDownloaded
-                                        ? 'Downloaded'
-                                        : 'Needs Internet',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDownloaded
-                                          ? AppColors.success
-                                          : AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  IconButton(
-                                    tooltip: isDownloaded
-                                        ? 'Downloaded (Tap to remove)'
-                                        : 'Download offline',
-                                    icon: Icon(
-                                      isDownloaded
-                                          ? Icons.check_circle
-                                          : Icons.download_outlined,
-                                      size: 20,
-                                      color: isDownloaded
-                                          ? AppColors.success
-                                          : AppColors.textSecondary,
-                                    ),
-                                    onPressed: () => _toggleDownload(material),
-                                  ),
-                                ],
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),

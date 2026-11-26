@@ -91,9 +91,14 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
-          onPressed: () => Navigator.pop(context),
+        leading: Semantics(
+          button: true,
+          label: 'Back',
+          child: IconButton(
+            tooltip: 'Back',
+            icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         title: const Text(
           'Custom Quiz',
@@ -177,25 +182,29 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildSectionTitle('Topics'),
-                  GestureDetector(
-                    key: const Key('custom_quiz_toggle_all_topics'),
-                    onTap: () {
-                      setState(() {
-                        if (_isAllTopicsSelected) {
-                          _isAllTopicsSelected = false;
-                          _selectedTopics.clear();
-                        } else {
-                          _isAllTopicsSelected = true;
-                          _selectedTopics.addAll(availableTopics);
-                        }
-                      });
-                    },
-                    child: Text(
-                      _isAllTopicsSelected ? 'Deselect All' : 'Select All',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.accent,
+                  Semantics(
+                    button: true,
+                    label: _isAllTopicsSelected ? 'Deselect all topics' : 'Select all topics',
+                    child: GestureDetector(
+                      key: const Key('custom_quiz_toggle_all_topics'),
+                      onTap: () {
+                        setState(() {
+                          if (_isAllTopicsSelected) {
+                            _isAllTopicsSelected = false;
+                            _selectedTopics.clear();
+                          } else {
+                            _isAllTopicsSelected = true;
+                            _selectedTopics.addAll(availableTopics);
+                          }
+                        });
+                      },
+                      child: Text(
+                        _isAllTopicsSelected ? 'Deselect All' : 'Select All',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.accent,
+                        ),
                       ),
                     ),
                   ),
@@ -396,39 +405,43 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
-                  key: const Key('custom_quiz_start_button'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.backgroundDark,
-                    disabledBackgroundColor: AppColors.border,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                child: Semantics(
+                  button: true,
+                  label: 'Start Custom Quiz',
+                  child: ElevatedButton(
+                    key: const Key('custom_quiz_start_button'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.backgroundDark,
+                      disabledBackgroundColor: AppColors.border,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  onPressed: isPoolEmpty
-                      ? null
-                      : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => QuizScreen(
-                                subject: _selectedSubject,
-                                isAdaptive: true,
-                                customPool: matchingQuestions,
-                                targetQuestionCount: effectiveCount,
+                    onPressed: isPoolEmpty
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => QuizScreen(
+                                  subject: _selectedSubject,
+                                  isAdaptive: true,
+                                  customPool: matchingQuestions,
+                                  targetQuestionCount: effectiveCount,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                  child: Text(
-                    isPoolEmpty
-                        ? 'No Questions Available'
-                        : 'Start Quiz ($effectiveCount Qs) →',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                            );
+                          },
+                    child: Text(
+                      isPoolEmpty
+                          ? 'No Questions Available'
+                          : 'Start Quiz ($effectiveCount Qs) →',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),

@@ -252,6 +252,7 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
@@ -291,6 +292,7 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                 child: TextField(
                   controller: _titleController,
                   decoration: const InputDecoration(
+                    labelText: 'Session Title',
                     hintText: 'e.g. Physics Prep & Formulas',
                     hintStyle: TextStyle(
                       fontSize: 14,
@@ -368,33 +370,37 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _pickDate,
-                child: Container(
-                  height: 52,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _formatDisplayDate(_selectedDate),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textDark,
+              Semantics(
+                button: true,
+                label: 'Pick date',
+                child: GestureDetector(
+                  onTap: _pickDate,
+                  child: Container(
+                    height: 52,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatDisplayDate(_selectedDate),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textDark,
+                          ),
                         ),
-                      ),
-                      const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 20,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -411,33 +417,37 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _pickTime,
-                child: Container(
-                  height: 52,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _formatTimeOfDay(_selectedTime),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textDark,
+              Semantics(
+                button: true,
+                label: 'Pick time',
+                child: GestureDetector(
+                  onTap: _pickTime,
+                  child: Container(
+                    height: 52,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatTimeOfDay(_selectedTime),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textDark,
+                          ),
                         ),
-                      ),
-                      const Icon(
-                        Icons.access_time_rounded,
-                        size: 20,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -499,10 +509,13 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                         ),
                       ],
                     ),
-                    Switch(
-                      value: _reminderEnabled,
-                      activeColor: AppColors.accent,
-                      onChanged: _onReminderToggleChanged,
+                    Semantics(
+                      label: 'Remind me notification toggle',
+                      child: Switch(
+                        value: _reminderEnabled,
+                        activeColor: AppColors.accent,
+                        onChanged: _onReminderToggleChanged,
+                      ),
                     ),
                   ],
                 ),
@@ -514,21 +527,25 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.textDark,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                child: Semantics(
+                  button: true,
+                  label: 'Save study session',
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: AppColors.textDark,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  onPressed: _saveSession,
-                  child: const Text(
-                    'Save Session',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    onPressed: _saveSession,
+                    child: const Text(
+                      'Save Session',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

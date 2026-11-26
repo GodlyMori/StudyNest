@@ -131,6 +131,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
@@ -185,6 +186,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 AppAssets.owlThinking,
                                 width: 32,
                                 height: 32,
+                                excludeFromSemantics: true,
                                 errorBuilder: (context, error, stackTrace) =>
                                     const Icon(Icons.school, color: AppColors.accent, size: 28),
                               ),
@@ -285,6 +287,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     child: TextField(
                       controller: _messageController,
                       decoration: InputDecoration(
+                        labelText: 'Type a message',
                         hintText: 'Type your message…',
                         filled: true,
                         fillColor: AppColors.surfaceMuted,
@@ -304,6 +307,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
+                      tooltip: 'Send message',
                       icon: const Icon(Icons.arrow_upward, color: AppColors.textDark),
                       onPressed: _sendMessage,
                     ),

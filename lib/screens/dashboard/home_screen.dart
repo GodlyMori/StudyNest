@@ -81,31 +81,35 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        if (widget.onNavigateTab != null) {
-                          widget.onNavigateTab!(3); // Profile tab
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
-                        }
-                      },
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'A',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                    Semantics(
+                      button: true,
+                      label: 'Open profile',
+                      child: GestureDetector(
+                        onTap: () {
+                          if (widget.onNavigateTab != null) {
+                            widget.onNavigateTab!(3); // Profile tab
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                            );
+                          }
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'A',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -122,56 +126,62 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: AppColors.accent,
-                          borderRadius: BorderRadius.circular(19),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.local_fire_department, size: 18, color: AppColors.textDark),
-                            const SizedBox(width: 6),
-                            Text(
-                              '$_streak-Day Streak',
-                              key: const Key('home_streak_chip_text'),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textDark,
+                      child: Semantics(
+                        label: '$_streak-Day Streak',
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent,
+                            borderRadius: BorderRadius.circular(19),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.local_fire_department, size: 18, color: AppColors.textDark),
+                              const SizedBox(width: 6),
+                              Text(
+                                '$_streak-Day Streak',
+                                key: const Key('home_streak_chip_text'),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textDark,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Container(
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(19),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.bolt, size: 18, color: AppColors.accent),
-                            const SizedBox(width: 6),
-                            Text(
-                              '${XpService.formatXp(_totalXp)} XP',
-                              key: const Key('home_xp_chip_text'),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textDark,
+                      child: Semantics(
+                        label: '${XpService.formatXp(_totalXp)} XP',
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(19),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.bolt, size: 18, color: AppColors.accent),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${XpService.formatXp(_totalXp)} XP',
+                                key: const Key('home_xp_chip_text'),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textDark,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -348,6 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildQuickActionCard(
                           context,
                           title: 'Take Assessment',
+                          semanticLabel: 'Take Assessment',
                           icon: Icons.assignment_outlined,
                           onTap: () {
                             Navigator.push(
@@ -361,6 +372,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildQuickActionCard(
                           context,
                           title: 'My Study Groups',
+                          semanticLabel: 'Open Study Groups',
                           icon: Icons.groups_outlined,
                           onTap: () {
                             if (widget.onNavigateTab != null) {
@@ -378,6 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildQuickActionCard(
                           context,
                           title: 'Study Schedule',
+                          semanticLabel: 'Open Study Schedule',
                           icon: Icons.calendar_today_outlined,
                           onTap: () {
                             Navigator.push(
@@ -391,6 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildQuickActionCard(
                           context,
                           title: 'Browse Materials',
+                          semanticLabel: 'Browse Materials',
                           icon: Icons.menu_book_outlined,
                           onTap: () {
                             Navigator.push(
@@ -418,21 +432,25 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: AppColors.textDark,
                           ),
                         ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const RecommendationsHubScreen(),
+                        Semantics(
+                          button: true,
+                          label: 'View all recommendations',
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RecommendationsHubScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'View all',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.accentDark,
+                                fontWeight: FontWeight.w600,
                               ),
-                            );
-                          },
-                          child: const Text(
-                            'View all',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.accentDark,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -441,71 +459,75 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 8),
 
                     // Recommendation Card 1: Calculus
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const QuizScreen(subject: 'Calculus'),
+                    Semantics(
+                      button: true,
+                      label: 'Take Calculus quiz',
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const QuizScreen(subject: 'Calculus'),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.border),
                           ),
-                        );
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Container(
-                                width: 6,
-                                color: AppColors.success,
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: const [
-                                      Text(
-                                        'Calculus — Derivatives',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textDark,
+                          clipBehavior: Clip.antiAlias,
+                          child: IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  color: AppColors.success,
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: const [
+                                        Text(
+                                          'Calculus — Derivatives',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.textDark,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Weak topic • 8-min review • Quiz ready',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.textSecondary,
+                                        SizedBox(height: 4),
+                                        Text(
+                                          'Weak topic • 8-min review • Quiz ready',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.textSecondary,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(height: 6),
-                                      Text(
-                                        'Priority: High',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.success,
+                                        SizedBox(height: 6),
+                                        Text(
+                                          'Priority: High',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.success,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.only(right: 14.0),
-                                child: Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                              ),
-                            ],
+                                const Padding(
+                                  padding: EdgeInsets.only(right: 14.0),
+                                  child: Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -514,49 +536,53 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 12),
 
                     // Recommendation Card 2: Biology
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MaterialsScreen(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
-                                  'Biology — Cell Structure',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textDark,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  'Review notes • 5 min',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
+                    Semantics(
+                      button: true,
+                      label: 'Review Biology notes',
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MaterialsScreen(),
                             ),
-                            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                          ],
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'Biology — Cell Structure',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textDark,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Review notes • 5 min',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -577,35 +603,40 @@ class _HomeScreenState extends State<HomeScreen> {
     required String title,
     required IconData icon,
     required VoidCallback onTap,
+    String? semanticLabel,
   }) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
+    return Semantics(
+      button: true,
+      label: semanticLabel ?? title,
+      child: Material(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 20, color: AppColors.textDark),
-              const SizedBox(height: 6),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 20, color: AppColors.textDark),
+                const SizedBox(height: 6),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

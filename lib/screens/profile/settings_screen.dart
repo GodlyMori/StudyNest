@@ -102,6 +102,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
+        leading: Semantics(
+          button: true,
+          label: 'Back',
+          child: IconButton(
+            tooltip: 'Back',
+            icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
         title: const Text(
           'Settings',
           style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark),
@@ -200,20 +209,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SizedBox(
               width: double.infinity,
               height: 52,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.error),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+              child: Semantics(
+                button: true,
+                label: 'Log Out',
+                excludeSemantics: true,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.error),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
                   ),
-                ),
-                onPressed: _handleLogout,
-                child: const Text(
-                  'Log Out',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.error,
+                  onPressed: _handleLogout,
+                  child: const Text(
+                    'Log Out',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.error,
+                    ),
                   ),
                 ),
               ),
@@ -225,22 +239,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SizedBox(
               width: double.infinity,
               height: 52,
-              child: TextButton.icon(
-                icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
-                label: const Text(
-                  'Delete Account',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.error,
+              child: Semantics(
+                button: true,
+                label: 'Delete Account',
+                excludeSemantics: true,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+                  label: const Text(
+                    'Delete Account',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.error,
+                    ),
                   ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const DeleteAccountScreen()),
+                    );
+                  },
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const DeleteAccountScreen()),
-                  );
-                },
               ),
             ),
 
@@ -263,57 +282,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDailyGoalTile() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Daily Quiz Goal',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+    return Semantics(
+      label: 'Daily Quiz Goal: $_dailyGoal ${_dailyGoal == 1 ? "quiz" : "quizzes"} per day',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Daily Quiz Goal',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Target: $_dailyGoal ${_dailyGoal == 1 ? "quiz" : "quizzes"} per day',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
+                  const SizedBox(height: 2),
+                  Text(
+                    'Target: $_dailyGoal ${_dailyGoal == 1 ? "quiz" : "quizzes"} per day',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          DropdownButton<int>(
-            key: const Key('daily_goal_dropdown'),
-            value: _dailyGoal,
-            underline: const SizedBox(),
-            items: const [
-              DropdownMenuItem(value: 1, child: Text('1 quiz')),
-              DropdownMenuItem(value: 2, child: Text('2 quizzes')),
-              DropdownMenuItem(value: 3, child: Text('3 quizzes')),
-              DropdownMenuItem(value: 5, child: Text('5 quizzes')),
-            ],
-            onChanged: (newGoal) async {
-              if (newGoal != null) {
-                setState(() => _dailyGoal = newGoal);
-                await StreakService.setDailyGoal(newGoal);
-              }
-            },
-          ),
-        ],
+            DropdownButton<int>(
+              key: const Key('daily_goal_dropdown'),
+              value: _dailyGoal,
+              underline: const SizedBox(),
+              items: const [
+                DropdownMenuItem(value: 1, child: Text('1 quiz')),
+                DropdownMenuItem(value: 2, child: Text('2 quizzes')),
+                DropdownMenuItem(value: 3, child: Text('3 quizzes')),
+                DropdownMenuItem(value: 5, child: Text('5 quizzes')),
+              ],
+              onChanged: (newGoal) async {
+                if (newGoal != null) {
+                  setState(() => _dailyGoal = newGoal);
+                  await StreakService.setDailyGoal(newGoal);
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -324,45 +346,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+    return Semantics(
+      button: true,
+      label: '$title toggle',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Switch(
-            value: value,
-            activeColor: AppColors.accent,
-            onChanged: onChanged,
-          ),
-        ],
+            Switch(
+              value: value,
+              activeColor: AppColors.accent,
+              onChanged: onChanged,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -372,24 +398,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: AppColors.textDark),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textDark,
-          ),
+    return Semantics(
+      button: true,
+      label: 'Open $title',
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
         ),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-        onTap: onTap,
+        child: ListTile(
+          leading: Icon(icon, color: AppColors.textDark),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
+          ),
+          trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          onTap: onTap,
+        ),
       ),
     );
   }

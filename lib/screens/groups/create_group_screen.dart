@@ -85,6 +85,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
@@ -124,6 +125,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 child: TextField(
                   controller: _nameController,
                   decoration: const InputDecoration(
+                    labelText: 'Group Name',
                     hintText: 'e.g. Physics Problem Solvers',
                     hintStyle: TextStyle(
                       fontSize: 14,
@@ -150,41 +152,44 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedSubject,
-                    icon: const Icon(
-                      Icons.arrow_drop_down,
-                      color: AppColors.textSecondary,
-                    ),
-                    isExpanded: true,
-                    items: _subjects.map((subject) {
-                      return DropdownMenuItem(
-                        value: subject,
-                        child: Text(
-                          subject,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: AppColors.textDark,
+              Semantics(
+                label: 'Select Subject',
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedSubject,
+                      icon: const Icon(
+                        Icons.arrow_drop_down,
+                        color: AppColors.textSecondary,
+                      ),
+                      isExpanded: true,
+                      items: _subjects.map((subject) {
+                        return DropdownMenuItem(
+                          value: subject,
+                          child: Text(
+                            subject,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: AppColors.textDark,
+                            ),
                           ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          _selectedSubject = val;
-                        });
-                      }
-                    },
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            _selectedSubject = val;
+                          });
+                        }
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -212,6 +217,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   controller: _descriptionController,
                   maxLines: 4,
                   decoration: const InputDecoration(
+                    labelText: 'Description',
                     hintText: 'What topics or goals will this study group tackle?',
                     hintStyle: TextStyle(
                       fontSize: 14,
@@ -242,22 +248,26 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     elevation: 0,
                   ),
                   onPressed: _isCreating ? null : _handleCreateGroup,
-                  child: _isCreating
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: AppColors.textDark,
+                  child: Semantics(
+                    button: true,
+                    label: 'Create Group',
+                    child: _isCreating
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: AppColors.textDark,
+                            ),
+                          )
+                        : const Text(
+                            'Create Group',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Create Group',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  ),
                 ),
               ),
             ],

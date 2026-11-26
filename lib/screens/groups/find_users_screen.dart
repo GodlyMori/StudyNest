@@ -122,6 +122,7 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
@@ -158,6 +159,7 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                       child: TextField(
                         controller: _searchController,
                         decoration: const InputDecoration(
+                          labelText: 'Search students',
                           hintText: 'Search by student name…',
                           hintStyle: TextStyle(
                             fontSize: 14,
@@ -175,11 +177,15 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                       ),
                     ),
                     if (_searchController.text.isNotEmpty)
-                      GestureDetector(
-                        onTap: _clearSearch,
-                        child: const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+                      Semantics(
+                        button: true,
+                        label: 'Clear search',
+                        child: GestureDetector(
+                          onTap: _clearSearch,
+                          child: const Padding(
+                            padding: EdgeInsets.all(4.0),
+                            child: Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+                          ),
                         ),
                       ),
                   ],
@@ -247,7 +253,11 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                                       vertical: 10,
                                     ),
                                   ),
-                                  child: const Text('Clear search'),
+                                  child: Semantics(
+                                    button: true,
+                                    label: 'Clear search',
+                                    child: const Text('Clear search'),
+                                  ),
                                 ),
                               ],
                             ),
@@ -308,27 +318,31 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                                       ),
                                     ),
                                     isInvited
-                                        ? OutlinedButton(
-                                            style: OutlinedButton.styleFrom(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              side: const BorderSide(color: AppColors.border),
-                                            ),
-                                            onPressed: null,
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.check, size: 14, color: AppColors.success),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  'Invited',
-                                                  style: TextStyle(
-                                                    color: AppColors.textSecondary,
-                                                    fontSize: 12,
-                                                  ),
+                                        ? Semantics(
+                                            button: false,
+                                            label: '${user.name} already invited',
+                                            child: OutlinedButton(
+                                              style: OutlinedButton.styleFrom(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(12),
                                                 ),
-                                              ],
+                                                side: const BorderSide(color: AppColors.border),
+                                              ),
+                                              onPressed: null,
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.check, size: 14, color: AppColors.success),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    'Invited',
+                                                    style: TextStyle(
+                                                      color: AppColors.textSecondary,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           )
                                         : ElevatedButton(
@@ -345,11 +359,15 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                                               ),
                                             ),
                                             onPressed: () => _inviteUser(user),
-                                            child: const Text(
-                                              'Invite',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
+                                            child: Semantics(
+                                              button: true,
+                                              label: 'Invite ${user.name}',
+                                              child: const Text(
+                                                'Invite',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
                                             ),
                                           ),

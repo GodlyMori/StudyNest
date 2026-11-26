@@ -107,23 +107,27 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         leadingWidth: 100,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: const Padding(
-            padding: EdgeInsets.only(left: 20.0),
-            child: Row(
-              children: [
-                Icon(Icons.arrow_back, size: 18, color: AppColors.textSecondary),
-                SizedBox(width: 4),
-                Text(
-                  'Back',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
+        leading: Semantics(
+          button: true,
+          label: 'Back',
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: const Padding(
+              padding: EdgeInsets.only(left: 20.0),
+              child: Row(
+                children: [
+                  Icon(Icons.arrow_back, size: 18, color: AppColors.textSecondary),
+                  SizedBox(width: 4),
+                  Text(
+                    'Back',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -145,6 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       AppAssets.owlSitting,
                       fit: BoxFit.contain,
                       alignment: Alignment.centerLeft,
+                      excludeFromSemantics: true,
                       errorBuilder: (context, error, stackTrace) => const SizedBox(),
                     ),
                   ),
@@ -196,6 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   }
                 },
                 decoration: const InputDecoration(
+                  labelText: 'Email',
                   hintText: 'you@example.com',
                   prefixIcon: Icon(Icons.mail_outline, size: 20, color: AppColors.textSecondary),
                 ),
@@ -222,6 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   }
                 },
                 decoration: InputDecoration(
+                  labelText: 'Password',
                   hintText: 'Enter your password',
                   prefixIcon: const Icon(Icons.lock_outline, size: 20, color: AppColors.textSecondary),
                   enabledBorder: OutlineInputBorder(
@@ -239,6 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   suffixIcon: IconButton(
+                    tooltip: _obscurePassword ? 'Show password' : 'Hide password',
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                       size: 20,
@@ -271,21 +279,25 @@ class _LoginScreenState extends State<LoginScreen> {
               // Forgot Password Link
               Align(
                 alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ForgotPasswordScreen(),
+                child: Semantics(
+                  button: true,
+                  label: 'Forgot password',
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ForgotPasswordScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Forgot password?',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
                       ),
-                    );
-                  },
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
                     ),
                   ),
                 ),
@@ -307,22 +319,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     elevation: 0,
                   ),
                   onPressed: _isLoading ? null : _handleLogin,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.textDark,
+                  child: Semantics(
+                    button: true,
+                    label: 'Log In',
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.textDark,
+                            ),
+                          )
+                        : const Text(
+                            'Log In',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Log In',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  ),
                 ),
               ),
 
@@ -330,31 +346,35 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Register Link
               Center(
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterScreen(),
-                      ),
-                    );
-                  },
-                  child: RichText(
-                    text: const TextSpan(
-                      text: 'New to StudyNest? ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: 'Create account',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                          ),
+                child: Semantics(
+                  button: true,
+                  label: 'Create new account',
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
                         ),
-                      ],
+                      );
+                    },
+                    child: RichText(
+                      text: const TextSpan(
+                        text: 'New to StudyNest? ',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Create account',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

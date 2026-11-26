@@ -243,6 +243,7 @@ class _QuizScreenState extends State<QuizScreen> {
               AppAssets.owlThinking,
               width: 36,
               height: 36,
+              excludeFromSemantics: true,
               errorBuilder: (context, error, stackTrace) =>
                   const Icon(Icons.school, color: AppColors.accent),
             ),
@@ -400,38 +401,47 @@ class _QuizScreenState extends State<QuizScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.arrow_back, size: 16, color: AppColors.textSecondary),
-                        const SizedBox(width: 4),
-                        Text(
-                          widget.subject,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
+                  Semantics(
+                    button: true,
+                    label: 'Leave quiz',
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.arrow_back, size: 16, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.subject,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const OwlChatScreen()),
-                      );
-                    },
-                    child: SizedBox(
-                      width: 46,
-                      height: 46,
-                      child: Image.asset(
-                        AppAssets.owlSitting,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.school, color: AppColors.accent),
+                  Semantics(
+                    button: true,
+                    label: 'Chat with Owl AI',
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OwlChatScreen()),
+                        );
+                      },
+                      child: SizedBox(
+                        width: 46,
+                        height: 46,
+                        child: Image.asset(
+                          AppAssets.owlSitting,
+                          fit: BoxFit.contain,
+                          excludeFromSemantics: true,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.school, color: AppColors.accent),
+                        ),
                       ),
                     ),
                   ),
@@ -567,36 +577,41 @@ class _QuizScreenState extends State<QuizScreen> {
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
-                  child: GestureDetector(
-                    onTap: () => _onOptionTapped(index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: bgColor,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: borderColor,
-                          width: (_isAnswered && (isCorrectOption || isSelected)) ? 2.0 : 1.0,
+                  child: Semantics(
+                    button: true,
+                    selected: isSelected,
+                    label: 'Option ${String.fromCharCode(65 + index)}: ${question.options[index]}',
+                    child: GestureDetector(
+                      onTap: () => _onOptionTapped(index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: bgColor,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: borderColor,
+                            width: (_isAnswered && (isCorrectOption || isSelected)) ? 2.0 : 1.0,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              question.options[index],
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: (isSelected || (_isAnswered && isCorrectOption))
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
-                                color: textColor,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                question.options[index],
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: (isSelected || (_isAnswered && isCorrectOption))
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                  color: textColor,
+                                ),
                               ),
                             ),
-                          ),
-                          if (trailingIcon != null) trailingIcon,
-                        ],
+                            if (trailingIcon != null) trailingIcon,
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -669,21 +684,26 @@ class _QuizScreenState extends State<QuizScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isAnswered ? AppColors.backgroundDark : AppColors.border,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+                child: Semantics(
+                  button: true,
+                  label: isLastQuestion ? 'Finish Quiz' : 'Next question',
+                  excludeSemantics: true,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isAnswered ? AppColors.backgroundDark : AppColors.border,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
-                  ),
-                  onPressed: _isAnswered ? _handleNext : null,
-                  child: Text(
-                    isLastQuestion ? 'Finish Quiz →' : 'Next question →',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                    onPressed: _isAnswered ? _handleNext : null,
+                    child: Text(
+                      isLastQuestion ? 'Finish Quiz →' : 'Next question →',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -695,29 +715,34 @@ class _QuizScreenState extends State<QuizScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 54,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: AppColors.accentLight,
-                    side: BorderSide(color: AppColors.accent.withOpacity(0.4)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  onPressed: _showOwlHintDialog,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.lightbulb_outline, color: AppColors.accentDark, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'Ask Owl for a Hint',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textDark,
-                        ),
+                child: Semantics(
+                  button: true,
+                  label: 'Ask Owl for a Hint',
+                  excludeSemantics: true,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: AppColors.accentLight,
+                      side: BorderSide(color: AppColors.accent.withOpacity(0.4)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    ],
+                    ),
+                    onPressed: _showOwlHintDialog,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.lightbulb_outline, color: AppColors.accentDark, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Ask Owl for a Hint',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

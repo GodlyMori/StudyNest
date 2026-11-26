@@ -37,6 +37,7 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
@@ -112,11 +113,15 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
                                   ),
                                 );
                               },
-                              child: const Text(
-                                'Start Recommended Plan',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
+                              child: Semantics(
+                                button: true,
+                                label: 'Start Recommended Plan',
+                                child: const Text(
+                                  'Start Recommended Plan',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
@@ -259,12 +264,16 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
                 ),
               ).then((_) => _loadRecommendations());
             },
-            child: const Text(
-              'Retake',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+            child: Semantics(
+              button: true,
+              label: 'Retake ${item.subject} quiz',
+              child: const Text(
+                'Retake',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
               ),
             ),
           ),
