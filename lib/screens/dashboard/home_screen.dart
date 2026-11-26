@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../ml/bkt_mastery.dart';
+import '../../services/mastery_service.dart';
+import '../../services/recommendation_engine.dart';
 import '../../services/streak_service.dart';
 import '../../services/xp_service.dart';
 import '../quiz/quiz_screen.dart';
@@ -23,20 +26,26 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _streak = 0;
   int _totalXp = 0;
+  List<RecommendationItem> _recommendations = [];
+  List<TopicMastery> _dueTopics = [];
 
   @override
   void initState() {
     super.initState();
-    _loadStreakAndXp();
+    _loadHomeData();
   }
 
-  Future<void> _loadStreakAndXp() async {
+  Future<void> _loadHomeData() async {
     final streakData = await StreakService.getCurrentStreakData();
     final totalXp = await XpService.getTotalXp();
+    final recs = await RecommendationEngine.getRankedRecommendations();
+    final due = await MasteryService.tracker.getDueTopics();
     if (mounted) {
       setState(() {
         _streak = streakData.currentStreak;
         _totalXp = totalXp;
+        _recommendations = recs;
+        _dueTopics = due;
       });
     }
   }
@@ -423,174 +432,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
+
+                    // Reviews Due Section (SM-2 Spaced Repetition)
+                    _buildReviewsDueCard(context),
+
+                    const SizedBox(height: 20),
 
                     // For You Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'For You',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                        Semantics(
-                          button: true,
-                          label: 'View all recommendations',
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const RecommendationsHubScreen(),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'View all',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.accentDark,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Recommendation Card 1: Calculus
-                    Semantics(
-                      button: true,
-                      label: 'Take Calculus quiz',
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const QuizScreen(subject: 'Calculus'),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: IntrinsicHeight(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Container(
-                                  width: 6,
-                                  color: AppColors.success,
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: const [
-                                        Text(
-                                          'Calculus — Derivatives',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.textDark,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          'Weak topic • 8-min review • Quiz ready',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                        ),
-                                        SizedBox(height: 6),
-                                        Text(
-                                          'Priority: High',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.success,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.only(right: 14.0),
-                                  child: Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Recommendation Card 2: Biology
-                    Semantics(
-                      button: true,
-                      label: 'Review Biology notes',
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MaterialsScreen(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text(
-                                    'Biology — Cell Structure',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textDark,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Review notes • 5 min',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildForYouSection(context),
 
                     const SizedBox(height: 24),
                   ],
@@ -642,6 +492,389 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReviewsDueCard(BuildContext context) {
+    final count = _dueTopics.length;
+    if (count == 0) {
+      return Semantics(
+        label: "No reviews due — you're all caught up",
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: const [
+              Icon(Icons.check_circle_outline, color: AppColors.success, size: 20),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "No reviews due — you're all caught up",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final label = '$count ${count == 1 ? 'review' : 'reviews'} due today';
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const PlannerScreen()),
+          );
+          _loadHomeData();
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.calendar_today,
+                  color: AppColors.textDark,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Tap to view scheduled SM-2 reviews',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForYouSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'For You',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            Semantics(
+              button: true,
+              label: 'View all recommendations',
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RecommendationsHubScreen(),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'View all',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.accentDark,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (_recommendations.isEmpty)
+          _buildEmptyStateCard(context)
+        else ...[
+          _buildTopRecommendationCard(context, _recommendations[0]),
+          if (_recommendations.length > 1) ...[
+            const SizedBox(height: 12),
+            _buildSecondaryRecommendationCard(context, _recommendations[1]),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _buildEmptyStateCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(Icons.assignment_outlined, size: 36, color: AppColors.primary),
+          const SizedBox(height: 10),
+          const Text(
+            'Take your first quiz to get your study plan',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Complete a quiz to unlock personalized topic recommendations.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Semantics(
+            button: true,
+            label: 'Take Assessment',
+            child: ElevatedButton(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const QuizScreen()),
+                );
+                _loadHomeData();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: AppColors.textDark,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                minimumSize: const Size(180, 44),
+              ),
+              child: const Text(
+                'Take Assessment',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _isQuizAction(RecommendationItem rec) {
+    if (rec.priority == 'Low' || (rec.mastery != null && rec.mastery! >= 0.7)) {
+      return false;
+    }
+    return true;
+  }
+
+  void _handleRecommendationTap(BuildContext context, RecommendationItem rec) async {
+    if (_isQuizAction(rec)) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QuizScreen(
+            subject: rec.subject,
+          ),
+        ),
+      );
+    } else {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MaterialsScreen(),
+        ),
+      );
+    }
+    _loadHomeData();
+  }
+
+  Color _priorityColor(String priority) {
+    if (priority == 'High priority') return AppColors.error;
+    if (priority == 'Medium') return AppColors.warning;
+    return AppColors.success;
+  }
+
+  Widget _buildTopRecommendationCard(BuildContext context, RecommendationItem rec) {
+    final isQuiz = _isQuizAction(rec);
+    final semanticLabel = isQuiz ? 'Take ${rec.subject} quiz' : 'Review ${rec.subject} notes';
+    final subtitle = rec.reason != null && rec.reason!.isNotEmpty
+        ? rec.reason!
+        : '${rec.priority} • ${rec.timeEstimate} review • Quiz ready';
+
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: GestureDetector(
+        onTap: () => _handleRecommendationTap(context, rec),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: 6,
+                  color: _priorityColor(rec.priority),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${rec.subject} — ${rec.topic}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Priority: ${rec.priority.replaceAll(' priority', '')}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: _priorityColor(rec.priority),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(right: 14.0),
+                  child: Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryRecommendationCard(BuildContext context, RecommendationItem rec) {
+    final isQuiz = _isQuizAction(rec);
+    final semanticLabel = isQuiz ? 'Take ${rec.subject} quiz' : 'Review ${rec.subject} notes';
+    final subtitle = rec.reason != null && rec.reason!.isNotEmpty
+        ? rec.reason!
+        : 'Review notes • ${rec.timeEstimate}';
+
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: GestureDetector(
+        onTap: () => _handleRecommendationTap(context, rec),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${rec.subject} — ${rec.topic}',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            ],
           ),
         ),
       ),

@@ -246,7 +246,7 @@ class RecommendationEngine {
     final stats = await _loadRawStats(prefs);
 
     if (stats.isEmpty) {
-      return defaultRecommendations;
+      return [];
     }
 
     final List<Map<String, dynamic>> list = stats.values.toList();

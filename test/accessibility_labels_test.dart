@@ -15,6 +15,7 @@ import 'package:study_nest/screens/planner/planner_screen.dart';
 import 'package:study_nest/screens/profile/profile_screen.dart';
 import 'package:study_nest/screens/profile/settings_screen.dart';
 import 'package:study_nest/screens/owl_chat/owl_chat_screen.dart';
+import 'package:study_nest/services/recommendation_engine.dart';
 
 void main() {
   setUp(() async {
@@ -24,6 +25,12 @@ void main() {
   group('Task 6.4: Accessibility Semantics Labels', () {
     testWidgets('Home screen contains key semantic action labels', (tester) async {
       final handle = tester.ensureSemantics();
+      // Seed an attempt so the dynamic recommendation card renders with its quiz action
+      await RecommendationEngine.recordAnswer(
+        subject: 'Calculus',
+        topic: 'Derivatives',
+        isCorrect: false,
+      );
       await tester.pumpWidget(
         const MaterialApp(
           home: HomeScreen(),
