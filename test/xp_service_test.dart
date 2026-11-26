@@ -121,15 +121,22 @@ void main() {
       expect(XpService.computeTotalXp(quiz2), equals(55), reason: 'Perfect quiz gets +20 bonus (15 + 20 + 20 = 55)');
     });
 
-    test('Level thresholds: 0 XP -> Level 1, 99 -> 1, 100 -> 2, 250 -> 3', () {
+    test('Level thresholds: flat rule totalXp ~/ 100 + 1 with no cap', () {
+      // Existing baseline cases:
       expect(XpService.levelFor(0), equals(1));
       expect(XpService.levelFor(99), equals(1));
       expect(XpService.levelFor(100), equals(2));
-      expect(XpService.levelFor(249), equals(2));
       expect(XpService.levelFor(250), equals(3));
-      expect(XpService.levelFor(450), equals(4));
-      expect(XpService.levelFor(700), equals(5));
-      expect(XpService.levelFor(1000), equals(6));
+
+      // Cases that failed under the old banded rule (capped at 6) and pass under the flat rule:
+      expect(XpService.levelFor(200), equals(3), reason: '200 XP is Level 3 under flat rule, not Level 2');
+      expect(XpService.levelFor(450), equals(5), reason: '450 XP is Level 5 under flat rule, not Level 4');
+      expect(XpService.levelFor(1000), equals(11), reason: '1000 XP is Level 11 under flat rule, not capped at 6');
+      expect(XpService.levelFor(1099), equals(11), reason: '1099 XP is Level 11 under flat rule');
+      expect(XpService.levelFor(1100), equals(12), reason: '1100 XP is Level 12 under flat rule');
+
+      // Edge case: negative totalXp is guarded safely to Level 1
+      expect(XpService.levelFor(-50), equals(1));
     });
 
     test('Backfill: seeded attempts (mixed difficulties, some wrong, one perfect quiz) produce the exact expected total', () {
@@ -315,6 +322,16 @@ void main() {
       expect(userTotal, equals(45));
       expect(prefs.getInt(XpService.guestXpKey), isNull, reason: 'Guest XP key must be cleared on migration');
       expect(prefs.getInt('${XpService.userXpPrefix}$testUserId'), equals(45));
+    });
+
+    test('Self-correction: derived level for 1000 XP evaluates to Level 11, correcting stale stored Level 6', () {
+      const staleStoredLevel = 6;
+      const totalXp = 1000;
+      final derivedLevel = XpService.levelFor(totalXp);
+
+      expect(derivedLevel, equals(11));
+      expect(derivedLevel != staleStoredLevel, isTrue,
+          reason: 'Level sync self-corrects stale stored levels on quiz finish via syncLevelToRemote');
     });
   });
 }

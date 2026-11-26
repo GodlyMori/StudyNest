@@ -55,20 +55,18 @@ class XpService {
     }
   }
 
-  /// Derives student level from total accumulated XP:
-  /// - 0..99   -> Level 1
-  /// - 100..249 -> Level 2
-  /// - 250..449 -> Level 3
-  /// - 450..699 -> Level 4
-  /// - 700..999 -> Level 5
-  /// - 1000+    -> Level 6
+  /// Derives student level from total accumulated XP using the flat rule:
+  /// Level = (totalXp < 0 ? 0 : totalXp) ~/ 100 + 1 (flat 100 XP per level, no cap).
+  /// - 0..99    -> Level 1
+  /// - 100..199 -> Level 2
+  /// - 200..299 -> Level 3
+  /// - 400..499 -> Level 5
+  /// - 1000..1099 -> Level 11
+  /// - 1100..1199 -> Level 12
+  /// - and so on, with no cap.
   static int levelFor(int totalXp) {
-    if (totalXp >= 1000) return 6;
-    if (totalXp >= 700) return 5;
-    if (totalXp >= 450) return 4;
-    if (totalXp >= 250) return 3;
-    if (totalXp >= 100) return 2;
-    return 1;
+    final sanitized = totalXp < 0 ? 0 : totalXp;
+    return sanitized ~/ 100 + 1;
   }
 
   /// Groups attempts into individual quiz sessions.
