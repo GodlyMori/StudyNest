@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../services/streak_service.dart';
+import '../../services/xp_service.dart';
 import '../quiz/quiz_screen.dart';
 import '../groups/study_groups_screen.dart';
 import '../planner/planner_screen.dart';
@@ -21,18 +22,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _streak = 0;
+  int _totalXp = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadStreak();
+    _loadStreakAndXp();
   }
 
-  Future<void> _loadStreak() async {
+  Future<void> _loadStreakAndXp() async {
     final streakData = await StreakService.getCurrentStreakData();
+    final totalXp = await XpService.getTotalXp();
     if (mounted) {
       setState(() {
         _streak = streakData.currentStreak;
+        _totalXp = totalXp;
       });
     }
   }
@@ -155,12 +159,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.bolt, size: 18, color: AppColors.accent),
-                            SizedBox(width: 6),
+                          children: [
+                            const Icon(Icons.bolt, size: 18, color: AppColors.accent),
+                            const SizedBox(width: 6),
                             Text(
-                              '1,240 XP',
-                              style: TextStyle(
+                              '${XpService.formatXp(_totalXp)} XP',
+                              key: const Key('home_xp_chip_text'),
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textDark,

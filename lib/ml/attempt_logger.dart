@@ -100,6 +100,8 @@ class AttemptLogger {
     required int timeTakenMs,
     required bool hintUsed,
     String? userIdOverride,
+    String? quizId,
+    int? difficulty,
   }) async {
     final userId = userIdOverride ?? getCurrentUserId();
     final attempt = QuestionAttempt(
@@ -112,6 +114,8 @@ class AttemptLogger {
       timeTakenMs: timeTakenMs < 0 ? 0 : timeTakenMs,
       hintUsed: hintUsed,
       answeredAt: _clock().toUtc(),
+      quizId: quizId,
+      difficulty: difficulty,
     );
 
     if (userId == null) {

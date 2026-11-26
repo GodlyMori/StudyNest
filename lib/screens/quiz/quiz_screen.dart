@@ -12,6 +12,7 @@ import '../../services/guest_score_service.dart';
 import '../../services/recommendation_engine.dart';
 import '../../services/attempt_sync_service.dart';
 import '../../services/mastery_service.dart';
+import '../../services/xp_service.dart';
 import '../owl_chat/owl_chat_screen.dart';
 import 'quiz_results_screen.dart';
 
@@ -76,6 +77,7 @@ class _QuizScreenState extends State<QuizScreen> {
   bool _isFinishing = false;
 
   // Per-question tracking for V2 question_attempts logging & SM-2 scheduling
+  late final String _quizSessionId = 'quiz_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
   final Stopwatch _questionStopwatch = Stopwatch();
   bool _hintUsedForCurrentQuestion = false;
   final Map<String, ({int correct, int total, int hints})> _topicSessionStats = {};
@@ -220,6 +222,8 @@ class _QuizScreenState extends State<QuizScreen> {
       correct: isCorrect,
       timeTakenMs: timeTakenMs,
       hintUsed: hintUsed,
+      quizId: _quizSessionId,
+      difficulty: question.difficulty,
     )
         .then((attempt) {
       return MasteryService.tracker.recordAttempt(attempt);
@@ -348,6 +352,9 @@ class _QuizScreenState extends State<QuizScreen> {
         hintCount: entry.value.hints,
       );
     }
+
+    // Recompute and persist total XP, and sync updated level to Supabase
+    await XpService.recordQuizFinish();
 
     widget.onQuizCompleted?.call(_correctCount, total);
 

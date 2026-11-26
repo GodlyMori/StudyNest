@@ -5,6 +5,7 @@ import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../services/attempt_sync_service.dart';
 import '../../services/mastery_service.dart';
+import '../../services/xp_service.dart';
 import 'login_screen.dart';
 import '../dashboard/main_navigation_screen.dart';
 
@@ -69,6 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             user.id,
             migratedAttempts,
           );
+          await XpService.migrateGuestXp(user.id);
         }
       } else {
         // If Supabase not yet configured, throw informative error

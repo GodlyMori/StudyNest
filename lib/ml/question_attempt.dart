@@ -14,6 +14,8 @@ class QuestionAttempt {
   final int timeTakenMs;
   final bool hintUsed;
   final DateTime answeredAt;
+  final String? quizId;
+  final int? difficulty;
 
   const QuestionAttempt({
     required this.id,
@@ -25,6 +27,8 @@ class QuestionAttempt {
     required this.timeTakenMs,
     required this.hintUsed,
     required this.answeredAt,
+    this.quizId,
+    this.difficulty,
   });
 
   QuestionAttempt copyWith({
@@ -37,6 +41,8 @@ class QuestionAttempt {
     int? timeTakenMs,
     bool? hintUsed,
     DateTime? answeredAt,
+    String? quizId,
+    int? difficulty,
   }) {
     return QuestionAttempt(
       id: id ?? this.id,
@@ -48,6 +54,8 @@ class QuestionAttempt {
       timeTakenMs: timeTakenMs ?? this.timeTakenMs,
       hintUsed: hintUsed ?? this.hintUsed,
       answeredAt: answeredAt ?? this.answeredAt,
+      quizId: quizId ?? this.quizId,
+      difficulty: difficulty ?? this.difficulty,
     );
   }
 
@@ -63,6 +71,8 @@ class QuestionAttempt {
       'time_taken_ms': timeTakenMs,
       'hint_used': hintUsed,
       'answered_at': answeredAt.toUtc().toIso8601String(),
+      if (quizId != null) 'quiz_id': quizId,
+      if (difficulty != null) 'difficulty': difficulty,
     };
   }
 
@@ -78,6 +88,8 @@ class QuestionAttempt {
       timeTakenMs: (json['time_taken_ms'] as num).toInt().clamp(0, 1 << 31),
       hintUsed: (json['hint_used'] as bool?) ?? false,
       answeredAt: DateTime.parse(json['answered_at'] as String).toUtc(),
+      quizId: json['quiz_id'] as String?,
+      difficulty: (json['difficulty'] as num?)?.toInt(),
     );
   }
 

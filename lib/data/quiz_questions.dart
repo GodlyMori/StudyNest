@@ -1513,6 +1513,21 @@ class QuizQuestionBank {
     ),
   ];
 
+  static final Map<String, int> _difficultyLookup = {
+    for (final q in [
+      ...calculusQuestions,
+      ...biologyQuestions,
+      ...historyQuestions,
+      ...physicsQuestions,
+    ])
+      q.id: q.difficulty,
+  };
+
+  /// Looks up question difficulty (1 = easy, 2 = medium, 3 = hard) by question id.
+  static int? lookupDifficulty(String questionId) {
+    return _difficultyLookup[questionId];
+  }
+
   static List<QuizQuestion> getQuestionsForSubject(String subject) {
     final normalized = subject.trim().toLowerCase();
     if (normalized.contains('diagnostic')) {

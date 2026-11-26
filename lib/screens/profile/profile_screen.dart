@@ -6,6 +6,7 @@ import '../../ml/topic_progress_analytics.dart';
 import '../../services/attempt_sync_service.dart';
 import '../../services/network_service.dart';
 import '../../services/streak_service.dart';
+import '../../services/xp_service.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../widgets/empty_state_view.dart';
@@ -27,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<Map<String, dynamic>> _quizScores = [];
   List<TopicProgressData> _topicProgressList = [];
   StreakData? _streakData;
+  int _totalXp = 0;
 
   static const List<({String subject, String topic})> _coreTopics = [
     (subject: 'Calculus', topic: 'Derivatives'),
@@ -130,6 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final streakData = await StreakService.computeStreakData(
       completedQuizTimestamps: quizTimestamps,
     );
+    final totalXp = await XpService.getTotalXp(userId: user?.id);
 
     if (mounted) {
       setState(() {
@@ -137,6 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _quizScores = scores;
         _topicProgressList = progressList;
         _streakData = streakData;
+        _totalXp = totalXp;
       });
     }
   }
@@ -181,7 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isGuest = user == null;
     final displayName = _profile?['display_name'] ?? (isGuest ? 'Guest Student' : 'Alvin Legarbes');
     final initials = _profile?['avatar_initials'] ?? (isGuest ? 'G' : 'AL');
-    final level = _profile?['level'] ?? (isGuest ? 1 : 6);
+    final level = XpService.levelFor(_totalXp);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -252,7 +256,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          isGuest ? 'Guest • Level $level' : 'Student • Level $level',
+                          '${isGuest ? "Guest" : "Student"} • Level $level • ${XpService.formatXp(_totalXp)} XP',
+                          key: const Key('profile_level_xp_text'),
                           style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.textSecondary,
