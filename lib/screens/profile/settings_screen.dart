@@ -407,18 +407,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
         ),
-        child: ListTile(
-          leading: Icon(icon, color: AppColors.textDark),
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textDark,
+        child: Material(
+          color: Colors.transparent,
+          child: ListTile(
+            leading: Icon(icon, color: AppColors.textDark),
+            title: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textDark,
+              ),
             ),
+            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            onTap: onTap,
           ),
-          trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-          onTap: onTap,
         ),
       ),
     );

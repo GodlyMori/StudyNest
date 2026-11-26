@@ -227,7 +227,7 @@ class MasteryTracker {
         }
         // Remote topic_mastery table is empty: rebuild from question_attempts if available.
         if (fallbackAttempts != null && fallbackAttempts.isNotEmpty) {
-          return rebuildFromAttempts(fallbackAttempts, userId: resolvedUserId);
+          return await rebuildFromAttempts(fallbackAttempts, userId: resolvedUserId);
         }
       } catch (_) {
         // Fall back to local cache if remote fetch fails.
