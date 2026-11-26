@@ -11,14 +11,42 @@ class SupabaseService {
   bool _initialized = false;
   bool get isInitialized => _initialized;
 
+  SupabaseClient? _mockClient;
+  @visibleForTesting
+  set mockClient(SupabaseClient? client) => _mockClient = client;
+
+  @visibleForTesting
+  set initializedForTesting(bool val) => _initialized = val;
+
+  User? _mockCurrentUser;
+  @visibleForTesting
+  set mockCurrentUser(User? user) => _mockCurrentUser = user;
+
+  @visibleForTesting
+  Future<void> Function()? signOutHandler;
+
+  bool get _hasSupabaseInstance {
+    try {
+      Supabase.instance;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   SupabaseClient get client {
+    if (_mockClient != null) return _mockClient!;
     if (!_initialized) {
       throw StateError('Supabase has not been initialized. Please provide SUPABASE_URL and SUPABASE_ANON_KEY.');
     }
     return Supabase.instance.client;
   }
 
-  User? get currentUser => _initialized ? client.auth.currentUser : null;
+  User? get currentUser {
+    if (_mockCurrentUser != null) return _mockCurrentUser;
+    if (!_initialized || (!_hasSupabaseInstance && _mockClient == null)) return null;
+    return client.auth.currentUser;
+  }
   bool get isAuthenticated => currentUser != null;
 
   static Future<void> initialize({String? url, String? anonKey}) async {
@@ -148,28 +176,49 @@ class SupabaseService {
     );
   }
 
+  /// Optional hook for testing Edge Function invocations without network calls.
+  @visibleForTesting
+  Future<FunctionResponse> Function(String functionName, {Map<String, dynamic>? body})? functionsInvoker;
+
   /// Delete account data for a given user id.
-  /// Cleans up public schema tables before sign out.
+  /// Cleans up public schema tables before invoking the delete-account
+  /// Edge Function to delete the auth.users identity, and finally signs out.
   Future<void> deleteAccount(String userId) async {
     if (_initialized) {
-      try {
-        await client.from('quiz_scores').delete().eq('user_id', userId);
-      } catch (_) {}
-      try {
-        await client.from('group_members').delete().eq('user_id', userId);
-      } catch (_) {}
-      try {
-        await client.from('group_messages').delete().eq('sender_id', userId);
-      } catch (_) {}
-      try {
-        await client.from('group_invites').delete().eq('invitee_id', userId);
-      } catch (_) {}
-      try {
-        await client.from('group_invites').delete().eq('inviter_id', userId);
-      } catch (_) {}
-      try {
-        await client.from('profiles').delete().eq('id', userId);
-      } catch (_) {}
+      if (_mockClient != null || _hasSupabaseInstance) {
+        try {
+          await client.from('quiz_scores').delete().eq('user_id', userId);
+        } catch (_) {}
+        try {
+          await client.from('group_members').delete().eq('user_id', userId);
+        } catch (_) {}
+        try {
+          await client.from('group_messages').delete().eq('sender_id', userId);
+        } catch (_) {}
+        try {
+          await client.from('group_invites').delete().eq('invitee_id', userId);
+        } catch (_) {}
+        try {
+          await client.from('group_invites').delete().eq('inviter_id', userId);
+        } catch (_) {}
+        try {
+          await client.from('profiles').delete().eq('id', userId);
+        } catch (_) {}
+      }
+
+      // Call the delete-account Supabase Edge Function to delete auth.users identity
+      final response = functionsInvoker != null
+          ? await functionsInvoker!('delete-account', body: {'userId': userId})
+          : await client.functions.invoke(
+              'delete-account',
+              body: {'userId': userId},
+            );
+
+      if (response.status < 200 || response.status >= 300) {
+        throw Exception(
+          'Failed to delete user identity in auth.users via delete-account function: status ${response.status}',
+        );
+      }
     }
     await signOut();
   }
@@ -181,7 +230,11 @@ class SupabaseService {
 
   /// Sign out current user.
   Future<void> signOut() async {
-    if (_initialized && currentUser != null) {
+    if (signOutHandler != null) {
+      await signOutHandler!();
+      return;
+    }
+    if (_initialized && currentUser != null && (_mockClient != null || _hasSupabaseInstance)) {
       await client.auth.signOut();
     }
   }
