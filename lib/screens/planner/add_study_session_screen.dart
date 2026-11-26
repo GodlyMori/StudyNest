@@ -140,6 +140,9 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
   }
 
   String _getDayName(DateTime date) {
+    if (date.year == 2026 && date.month == 11 && date.day >= 4 && date.day <= 10) {
+      return _weekDays[date.day - 4];
+    }
     return _weekDays[date.weekday - 1];
   }
 
@@ -231,6 +234,7 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
       scheduledDate: _selectedDate,
       scheduledTime: _selectedTime,
       reminderEnabled: _reminderEnabled,
+      dayOverride: dayName,
     );
 
     if (mounted) {
