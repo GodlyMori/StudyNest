@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/auth/welcome_screen.dart';
 import 'services/attempt_sync_service.dart';
+import 'services/crash_reporting_service.dart';
 import 'services/notification_service.dart';
 import 'services/supabase_service.dart';
 
@@ -18,7 +19,11 @@ Future<void> main() async {
   // Initialize Local Notifications and Timezone for study session reminders
   await NotificationService.initialize();
 
-  runApp(const StudyNestApp());
+  // Initialize Sentry crash reporting via --dart-define=SENTRY_DSN=...
+  // Gracefully handles empty DSN so app startup is never blocked without configuration.
+  await CrashReportingService.initialize(
+    appRunner: () => runApp(const StudyNestApp()),
+  );
 }
 
 class StudyNestApp extends StatelessWidget {
