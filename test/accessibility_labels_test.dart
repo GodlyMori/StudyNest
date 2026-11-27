@@ -246,6 +246,9 @@ void main() {
       expect(find.bySemanticsLabel(RegExp(r'Back')), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp(r'Ask Owl a question')), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp(r'Send message to Owl')), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r'Ask Owl: What should I study next')), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r"Ask Owl: What's due for review")), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r'Ask Owl: How am I doing')), findsOneWidget);
       handle.dispose();
     });
   });

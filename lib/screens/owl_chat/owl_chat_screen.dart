@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
+import '../../services/owl_chat_service.dart';
 
 class OwlChatScreen extends StatefulWidget {
-  const OwlChatScreen({super.key});
+  final OwlStudentData? initialData;
+  const OwlChatScreen({super.key, this.initialData});
 
   @override
   State<OwlChatScreen> createState() => _OwlChatScreenState();
@@ -11,46 +13,66 @@ class OwlChatScreen extends StatefulWidget {
 
 class _OwlChatScreenState extends State<OwlChatScreen> {
   final _controller = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'isOwl': true,
-      'text': 'Hi Alvin! Stuck on derivatives? I can explain it in 2 minutes.',
-    },
-    {
-      'isOwl': false,
-      'text': 'Explain Pythagorean theorem',
-    },
-    {
-      'isOwl': true,
-      'text': 'Sure — a² + b² = c². In any right-angled triangle, the square of the hypotenuse equals the sum of the squares of the other two sides. Want a practice problem next?',
-    },
+  final List<Map<String, dynamic>> _messages = [];
+  OwlStudentData? _studentData;
+
+  static const List<String> _suggestions = [
+    'What should I study next?',
+    "What's due for review?",
+    'How am I doing?',
   ];
 
-  final List<String> _suggestions = [
-    'Explain Pythagorean theorem',
-    'Give me a practice problem',
-    'Summarize today\'s session',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialData != null) {
+      _studentData = widget.initialData;
+      _messages.add({
+        'isOwl': true,
+        'text': OwlChatService.buildGreeting(widget.initialData!),
+      });
+    } else {
+      _loadInitialData();
+    }
+  }
 
-  void _sendMessage(String text) {
-    if (text.trim().isEmpty) return;
+  Future<void> _loadInitialData() async {
+    final data = await OwlChatService.loadStudentData();
+    if (!mounted) return;
+    setState(() {
+      _studentData = data;
+      _messages.add({
+        'isOwl': true,
+        'text': OwlChatService.buildGreeting(data),
+      });
+    });
+  }
+
+  void _sendMessage(String text) async {
+    final query = text.trim();
+    if (query.isEmpty) return;
 
     setState(() {
       _messages.add({
         'isOwl': false,
-        'text': text,
+        'text': query,
       });
       _controller.clear();
     });
 
-    // Simulated Owl AI intelligent reply
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
-      setState(() {
-        _messages.add({
-          'isOwl': true,
-          'text': 'Here\'s what you need to know for that: Focus on the fundamental rules and practice with 2-3 quick questions. Ready to begin?',
-        });
+    // Real async data load
+    final data = _studentData ?? await OwlChatService.loadStudentData();
+    _studentData = data;
+
+    // Small async pause for chat rhythm
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+
+    final reply = OwlChatService.computeReply(query, data);
+    setState(() {
+      _messages.add({
+        'isOwl': true,
+        'text': reply,
       });
     });
   }
