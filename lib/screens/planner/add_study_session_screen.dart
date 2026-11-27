@@ -23,6 +23,21 @@ class AddStudySessionScreen extends StatefulWidget {
     'Sun',
   ];
 
+  static const List<String> _monthAbbrs = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
   static String formatTimeOfDay(TimeOfDay tod) {
     final hour = tod.hourOfPeriod == 0 ? 12 : tod.hourOfPeriod;
     final period = tod.period == DayPeriod.am ? 'AM' : 'PM';
@@ -32,7 +47,8 @@ class AddStudySessionScreen extends StatefulWidget {
 
   static String formatDisplayDate(DateTime date) {
     final dayName = _weekDaysList[date.weekday - 1];
-    return '$dayName, ${date.day} Nov ${date.year}';
+    final monthAbbr = _monthAbbrs[date.month - 1];
+    return '$dayName, ${date.day} $monthAbbr ${date.year}';
   }
 
   /// Shared session-creation helper used by both the Add Study Session form
@@ -103,7 +119,7 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
   String _selectedSubject = 'Calculus';
   final List<String> _subjects = ['Calculus', 'Biology', 'History', 'Physics'];
 
-  DateTime _selectedDate = DateTime(2026, 11, 7); // Defaults to Thursday
+  late DateTime _selectedDate;
   TimeOfDay _selectedTime = const TimeOfDay(hour: 14, minute: 0); // 2:00 PM
   bool _reminderEnabled = false;
 
@@ -112,12 +128,18 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final monday = today.subtract(Duration(days: today.weekday - 1));
     if (widget.initialDay != null) {
       final index = _weekDays.indexOf(widget.initialDay!);
       if (index >= 0) {
-        // Map to November 2026 dates (Mon 4 .. Sun 10)
-        _selectedDate = DateTime(2026, 11, 4 + index);
+        _selectedDate = monday.add(Duration(days: index));
+      } else {
+        _selectedDate = today;
       }
+    } else {
+      _selectedDate = monday.add(const Duration(days: 3)); // Defaults to Thursday of current week
     }
   }
 
@@ -128,21 +150,14 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
   }
 
   String _formatTimeOfDay(TimeOfDay tod) {
-    final hour = tod.hourOfPeriod == 0 ? 12 : tod.hourOfPeriod;
-    final period = tod.period == DayPeriod.am ? 'AM' : 'PM';
-    final minute = tod.minute.toString().padLeft(2, '0');
-    return '$hour:$minute $period';
+    return AddStudySessionScreen.formatTimeOfDay(tod);
   }
 
   String _formatDisplayDate(DateTime date) {
-    final dayName = _weekDays[date.weekday - 1];
-    return '$dayName, ${date.day} Nov ${date.year}';
+    return AddStudySessionScreen.formatDisplayDate(date);
   }
 
   String _getDayName(DateTime date) {
-    if (date.year == 2026 && date.month == 11 && date.day >= 4 && date.day <= 10) {
-      return _weekDays[date.day - 4];
-    }
     return _weekDays[date.weekday - 1];
   }
 
@@ -150,8 +165,8 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2026, 1, 1),
-      lastDate: DateTime(2026, 12, 31),
+      firstDate: DateTime(_selectedDate.year - 1, 1, 1),
+      lastDate: DateTime(_selectedDate.year + 1, 12, 31),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(

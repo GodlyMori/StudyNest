@@ -17,6 +17,37 @@ import 'notifications_list_screen.dart';
 class PlannerScreen extends StatefulWidget {
   const PlannerScreen({super.key});
 
+  static const List<String> weekDayNames = [
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
+  ];
+
+  static const List<String> monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  static DateTime getMondayOfCurrentWeek([DateTime? referenceDate]) {
+    final now = referenceDate ?? DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return today.subtract(Duration(days: today.weekday - 1));
+  }
+
   @override
   State<PlannerScreen> createState() => _PlannerScreenState();
 }
@@ -24,8 +55,9 @@ class PlannerScreen extends StatefulWidget {
 class _PlannerScreenState extends State<PlannerScreen> {
   int _selectedDayIndex = 2; // Wednesday (starting data)
 
-  final List<String> _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  final List<String> _dates = ['4', '5', '6', '7', '8', '9', '10'];
+  late final List<DateTime> _weekDates;
+  late final List<String> _days;
+  late final List<String> _dates;
 
   List<StudySession> _sessions = [];
   List<TopicMastery> _dueReviews = [];
@@ -35,6 +67,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
   @override
   void initState() {
     super.initState();
+    final monday = PlannerScreen.getMondayOfCurrentWeek();
+    _weekDates = List.generate(7, (i) => monday.add(Duration(days: i)));
+    _days = _weekDates.map((d) => PlannerScreen.weekDayNames[d.weekday - 1]).toList();
+    _dates = _weekDates.map((d) => d.day.toString()).toList();
     _loadSessions();
   }
 
@@ -73,7 +109,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
   }
 
   Future<void> _scheduleDueReview(TopicMastery review) async {
-    final selectedDate = DateTime(2026, 11, 4 + _selectedDayIndex);
+    final selectedDate = _weekDates[_selectedDayIndex];
     final reminderGranted = await NotificationService.isPermissionGranted();
     final title = 'Review: ${review.topic}';
 
@@ -212,10 +248,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: List.generate(_days.length, (index) {
                     final isSelected = _selectedDayIndex == index;
+                    final date = _weekDates[index];
+                    final monthName = PlannerScreen.monthNames[date.month - 1];
                     return Semantics(
                       button: true,
                       selected: isSelected,
-                      label: 'Select ${_days[index]}, ${_dates[index]} November',
+                      label: 'Select ${_days[index]}, ${_dates[index]} $monthName',
                       child: GestureDetector(
                         onTap: () => _onDaySelected(index),
                         child: Container(

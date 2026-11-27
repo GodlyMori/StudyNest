@@ -457,7 +457,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Test Date Picker (frame 43)
-    final dateFinder = find.textContaining('Nov 2026');
+    final dateFinder = find.byIcon(Icons.calendar_today_rounded);
     expect(dateFinder, findsOneWidget);
     await tester.tap(dateFinder);
     await tester.pumpAndSettle();
