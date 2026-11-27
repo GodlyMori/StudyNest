@@ -7,6 +7,7 @@ import 'package:study_nest/data/study_materials.dart';
 import 'package:study_nest/main.dart';
 import 'package:study_nest/models/study_session.dart';
 import 'package:study_nest/screens/auth/login_screen.dart';
+import 'package:study_nest/screens/auth/register_screen.dart';
 import 'package:study_nest/screens/auth/welcome_screen.dart';
 import 'package:study_nest/screens/common/no_connection_screen.dart';
 import 'package:study_nest/screens/groups/create_group_screen.dart';
@@ -78,6 +79,35 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Incorrect email or password. Try again.'), findsOneWidget);
+  });
+
+  testWidgets('TC-17: Registering with short password (< 6 chars) shows validation error and halts registration', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: RegisterScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Enter valid name and email, but a 5-character password
+    await tester.enterText(find.byKey(const Key('register_name_field')), 'Alvin Legarbes');
+    await tester.enterText(find.byKey(const Key('register_email_field')), 'alvin@example.com');
+    await tester.enterText(find.byKey(const Key('register_password_field')), 'abc12');
+    await tester.pumpAndSettle();
+
+    final registerButton = find.byKey(const Key('register_submit_button'));
+    expect(registerButton, findsOneWidget);
+    await tester.tap(registerButton);
+    await tester.pumpAndSettle();
+
+    // Assert error message is displayed
+    expect(find.text('Password must be at least 6 characters.'), findsOneWidget);
+    expect(find.byKey(const Key('register_error_text')), findsOneWidget);
+
+    // Assert validation returned early before backend registration call:
+    // User remains on RegisterScreen and did not transition to a loading spinner
+    expect(find.byType(RegisterScreen), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   test('Guest score taken is stored locally and migrated on registration', () async {

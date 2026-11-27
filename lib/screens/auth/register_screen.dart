@@ -172,6 +172,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                key: const Key('register_name_field'),
                 controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'Full name',
@@ -193,6 +194,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                key: const Key('register_email_field'),
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
@@ -215,6 +217,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
+                key: const Key('register_password_field'),
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
@@ -241,6 +244,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 14),
                 Text(
                   _errorMessage!,
+                  key: const Key('register_error_text'),
                   style: const TextStyle(
                     color: AppColors.error,
                     fontSize: 13,
@@ -256,6 +260,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
+                  key: const Key('register_submit_button'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: AppColors.textDark,
