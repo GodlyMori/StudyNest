@@ -8,6 +8,7 @@ import '../models/group_member.dart';
 import '../models/group_invite.dart';
 import '../models/group_message.dart';
 import '../models/user_profile_summary.dart';
+import '../ml/question_attempt.dart';
 import 'supabase_service.dart';
 
 class GroupService {
@@ -114,29 +115,37 @@ class GroupService {
 
   /// Join a group
   static Future<void> joinGroup(String groupId) async {
-    final all = await _loadAllGroups();
-    final index = all.indexWhere((g) => g.id == groupId);
-    if (index >= 0) {
-      all[index] = all[index].copyWith(
-        isJoined: true,
-        memberCount: all[index].memberCount + 1,
-      );
-      await _saveAllGroups(all);
-    }
+    final user = SupabaseService.instance.currentUser;
+    final isSignedIn = SupabaseService.instance.isInitialized && user != null;
 
-    // Attempt to persist to Supabase if connected
-    if (SupabaseService.instance.isInitialized) {
-      final user = SupabaseService.instance.currentUser;
-      if (user != null) {
-        try {
-          await SupabaseService.instance.client.from('group_members').insert({
-            'group_id': groupId,
-            'user_id': user.id,
-            'role': 'member',
-          });
-        } catch (e) {
-          debugPrint('Supabase joinGroup note: $e');
-        }
+    if (isSignedIn) {
+      // Persist to Supabase first; rethrows on failure (no fake local join)
+      await SupabaseService.instance.client.from('group_members').insert({
+        'group_id': groupId,
+        'user_id': user.id,
+        'role': 'member',
+      });
+
+      // Update local cache after Supabase write succeeds
+      final all = await _loadFromCache(seedDefaults: false);
+      final index = all.indexWhere((g) => g.id == groupId);
+      if (index >= 0) {
+        all[index] = all[index].copyWith(
+          isJoined: true,
+          memberCount: all[index].memberCount + 1,
+        );
+        await _saveAllGroups(all);
+      }
+    } else {
+      // Guest: local-only cache
+      final all = await _loadFromCache(seedDefaults: true);
+      final index = all.indexWhere((g) => g.id == groupId);
+      if (index >= 0) {
+        all[index] = all[index].copyWith(
+          isJoined: true,
+          memberCount: all[index].memberCount + 1,
+        );
+        await _saveAllGroups(all);
       }
     }
   }
@@ -147,48 +156,66 @@ class GroupService {
     required String subject,
     required String description,
   }) async {
-    final groupId = 'group_${DateTime.now().millisecondsSinceEpoch}';
-    final currentUserId = SupabaseService.instance.currentUser?.id;
+    final user = SupabaseService.instance.currentUser;
+    final isSignedIn = SupabaseService.instance.isInitialized && user != null;
 
-    final newGroup = StudyGroup(
-      id: groupId,
-      name: name,
-      subject: subject,
-      description: description,
-      createdBy: currentUserId,
-      memberCount: 1,
-      onlineCount: 1,
-      isPublic: true,
-      isJoined: true, // Creator is immediately joined
-    );
+    if (isSignedIn) {
+      final groupId = QuestionAttempt.generateUuidV4();
+      final newGroup = StudyGroup(
+        id: groupId,
+        name: name,
+        subject: subject,
+        description: description,
+        createdBy: user.id,
+        memberCount: 1,
+        onlineCount: 1,
+        isPublic: true,
+        isJoined: true, // Creator is immediately joined
+      );
 
-    final all = await _loadAllGroups();
-    all.insert(0, newGroup);
-    await _saveAllGroups(all);
+      // Persist to Supabase first; rethrows on failure
+      await SupabaseService.instance.client.from('groups').insert({
+        'id': groupId,
+        'name': name,
+        'subject': subject,
+        'description': description,
+        'created_by': user.id,
+        'is_public': true,
+      });
 
-    // Save to Supabase if available
-    if (SupabaseService.instance.isInitialized && currentUserId != null) {
-      try {
-        await SupabaseService.instance.client.from('groups').insert({
-          'id': groupId,
-          'name': name,
-          'subject': subject,
-          'description': description,
-          'created_by': currentUserId,
-          'is_public': true,
-        });
+      await SupabaseService.instance.client.from('group_members').insert({
+        'group_id': groupId,
+        'user_id': user.id,
+        'role': 'admin',
+      });
 
-        await SupabaseService.instance.client.from('group_members').insert({
-          'group_id': groupId,
-          'user_id': currentUserId,
-          'role': 'admin',
-        });
-      } catch (e) {
-        debugPrint('Supabase createGroup note: $e');
-      }
+      // Update local cache only after Supabase succeeds
+      final all = await _loadFromCache(seedDefaults: false);
+      all.insert(0, newGroup);
+      await _saveAllGroups(all);
+
+      return newGroup;
+    } else {
+      // Guest: local-only group creation
+      final groupId = 'group_${DateTime.now().millisecondsSinceEpoch}';
+      final newGroup = StudyGroup(
+        id: groupId,
+        name: name,
+        subject: subject,
+        description: description,
+        createdBy: null,
+        memberCount: 1,
+        onlineCount: 1,
+        isPublic: true,
+        isJoined: true, // Creator is immediately joined
+      );
+
+      final all = await _loadFromCache(seedDefaults: true);
+      all.insert(0, newGroup);
+      await _saveAllGroups(all);
+
+      return newGroup;
     }
-
-    return newGroup;
   }
 
   /// Get Group details (members, shared materials, recent messages)
@@ -270,7 +297,7 @@ class GroupService {
     required String inviteeId,
     required String inviteeName,
   }) async {
-    final inviteId = 'inv_${DateTime.now().millisecondsSinceEpoch}';
+    final inviteId = QuestionAttempt.generateUuidV4();
     final inviterId = SupabaseService.instance.currentUser?.id ?? 'current_user';
     final inviterName = SupabaseService.instance.currentUser?.email ?? 'You';
 
@@ -578,17 +605,79 @@ class GroupService {
 
   // Helper internal storage
   static Future<List<StudyGroup>> _loadAllGroups() async {
+    final user = SupabaseService.instance.currentUser;
+    final isSignedIn = SupabaseService.instance.isInitialized && user != null;
+
+    if (isSignedIn) {
+      try {
+        final client = SupabaseService.instance.client;
+        final groupsResponse = await client
+            .from('groups')
+            .select()
+            .order('created_at', ascending: false);
+
+        final membersResponse = await client
+            .from('group_members')
+            .select();
+
+        final groupsList = (groupsResponse as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        final membersList = (membersResponse as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+
+        final result = groupsList.map((g) {
+          final groupId = g['id'] as String;
+          final groupMembers =
+              membersList.where((m) => m['group_id'] == groupId).toList();
+          final isJoined = groupMembers.any((m) => m['user_id'] == user.id);
+          final memberCount = groupMembers.isNotEmpty
+              ? groupMembers.length
+              : (g['member_count'] as int? ?? 1);
+
+          return StudyGroup(
+            id: groupId,
+            name: g['name'] as String? ?? 'Study Group',
+            subject: g['subject'] as String? ?? 'General',
+            description: g['description'] as String? ?? '',
+            createdBy: g['created_by'] as String?,
+            memberCount: memberCount,
+            onlineCount: g['online_count'] as int? ?? 1,
+            isPublic: g['is_public'] as bool? ?? true,
+            isJoined: isJoined,
+          );
+        }).toList();
+
+        await _saveAllGroups(result);
+        return result;
+      } catch (e) {
+        debugPrint('Supabase _loadAllGroups error, falling back to cache: $e');
+        return _loadFromCache(seedDefaults: false);
+      }
+    } else {
+      return _loadFromCache(seedDefaults: true);
+    }
+  }
+
+  static Future<List<StudyGroup>> _loadFromCache({required bool seedDefaults}) async {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString(_allGroupsKey);
     if (data == null) {
-      await _saveAllGroups(defaultGroups);
-      return List<StudyGroup>.from(defaultGroups);
+      if (seedDefaults) {
+        await _saveAllGroups(defaultGroups);
+        return List<StudyGroup>.from(defaultGroups);
+      }
+      return [];
     }
     try {
       final list = jsonDecode(data) as List<dynamic>;
       return list.map((g) => StudyGroup.fromJson(g as Map<String, dynamic>)).toList();
     } catch (_) {
-      return List<StudyGroup>.from(defaultGroups);
+      if (seedDefaults) {
+        return List<StudyGroup>.from(defaultGroups);
+      }
+      return [];
     }
   }
 
