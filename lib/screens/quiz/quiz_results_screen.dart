@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../models/question_review_item.dart';
+import '../../models/topic_mastery_movement.dart';
 import '../../services/mastery_service.dart';
 import '../../services/recommendation_engine.dart';
 import '../materials/materials_screen.dart';
@@ -18,6 +19,7 @@ class QuizResultsScreen extends StatefulWidget {
   final List<QuestionReviewItem>? reviewItems;
   final bool isDiagnostic;
   final Map<String, int>? subjectMasteries;
+  final List<TopicMasteryMovement>? masteryMovements;
 
   const QuizResultsScreen({
     super.key,
@@ -29,6 +31,7 @@ class QuizResultsScreen extends StatefulWidget {
     this.reviewItems,
     this.isDiagnostic = false,
     this.subjectMasteries,
+    this.masteryMovements,
   });
 
   @override
@@ -228,6 +231,48 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                   color: AppColors.error,
                 ),
               ),
+
+              if (!widget.isDiagnostic &&
+                  widget.masteryMovements != null &&
+                  widget.masteryMovements!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Mastery Progress',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ...widget.masteryMovements!.map((movement) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            '${movement.subject} — ${movement.topic} ${movement.beforePct}% → ${movement.afterPct}%',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 24),
 

@@ -5,8 +5,10 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../data/quiz_questions.dart';
 import '../../models/quiz_question.dart';
+import '../../ml/bkt_mastery.dart';
 import '../../ml/question_selector.dart';
 import '../../models/question_review_item.dart';
+import '../../models/topic_mastery_movement.dart';
 import '../../services/supabase_service.dart';
 import '../../services/guest_score_service.dart';
 import '../../services/recommendation_engine.dart';
@@ -35,6 +37,9 @@ class QuizScreen extends StatefulWidget {
   /// Whether this quiz is running in diagnostic mode (Task: Real diagnostic quiz).
   final bool isDiagnostic;
 
+  /// Optional pre-quiz mastery snapshot for testing or instant availability.
+  final Map<String, TopicMastery>? initialMasteries;
+
   const QuizScreen({
     super.key,
     this.subject = 'Calculus',
@@ -43,6 +48,7 @@ class QuizScreen extends StatefulWidget {
     this.targetQuestionCount,
     this.onQuizCompleted,
     this.isDiagnostic = false,
+    this.initialMasteries,
   });
 
   static String calculateGrade(int score) {
@@ -86,10 +92,14 @@ class _QuizScreenState extends State<QuizScreen> {
   bool _hintUsedForCurrentQuestion = false;
   final Map<String, ({int correct, int total, int hints})> _topicSessionStats = {};
   final Map<String, String> _topicSubjects = {};
+  Map<String, TopicMastery> _preQuizMasteries = {};
 
   @override
   void initState() {
     super.initState();
+    if (widget.initialMasteries != null) {
+      _preQuizMasteries = Map<String, TopicMastery>.from(widget.initialMasteries!);
+    }
     if (widget.isDiagnostic) {
       _pool = widget.customPool ?? QuizQuestionBank.buildDiagnosticPool();
       _targetTotalQuestions = min(
@@ -134,6 +144,7 @@ class _QuizScreenState extends State<QuizScreen> {
       _loadMasteriesAndHistory();
     } else {
       _questions = _pool.take(_targetTotalQuestions).toList();
+      _loadMasteriesAndHistory();
     }
 
     _hintUsedForCurrentQuestion = false;
@@ -149,6 +160,9 @@ class _QuizScreenState extends State<QuizScreen> {
       final attempts = await AttemptSyncService.logger.getAttempts();
       if (!mounted) return;
       setState(() {
+        if (_preQuizMasteries.isEmpty) {
+          _preQuizMasteries = Map<String, TopicMastery>.from(masteries);
+        }
         _cachedMasteries = masteries.map((k, v) => MapEntry(v.topic, v.mastery));
         _recentAttemptIds = attempts.map((a) => a.questionId).toList();
       });
@@ -380,13 +394,16 @@ class _QuizScreenState extends State<QuizScreen> {
 
     widget.onQuizCompleted?.call(_correctCount, total);
 
+    final freshMasteries = await MasteryService.loadOrRebuildMasteries();
+
     Map<String, int>? subjectMasteries;
+    List<TopicMasteryMovement>? masteryMovements;
+
     if (widget.isDiagnostic) {
-      final masteries = await MasteryService.loadOrRebuildMasteries();
       const subjects = ['Calculus', 'Biology', 'History', 'Physics'];
       final map = <String, int>{};
       for (final s in subjects) {
-        final entries = masteries.values
+        final entries = freshMasteries.values
             .where((m) => m.subject.toLowerCase() == s.toLowerCase())
             .toList();
         if (entries.isNotEmpty) {
@@ -396,6 +413,14 @@ class _QuizScreenState extends State<QuizScreen> {
         }
       }
       subjectMasteries = map;
+    } else {
+      masteryMovements = TopicMasteryMovement.computeMovements(
+        beforeMasteries: _preQuizMasteries,
+        afterMasteries: freshMasteries,
+        attemptedTopics: _topicSessionStats.keys,
+        topicSubjects: _topicSubjects,
+        defaultSubject: widget.subject,
+      );
     }
 
     if (!mounted) return;
@@ -411,6 +436,7 @@ class _QuizScreenState extends State<QuizScreen> {
           reviewItems: _reviewItems,
           isDiagnostic: widget.isDiagnostic,
           subjectMasteries: subjectMasteries,
+          masteryMovements: masteryMovements,
         ),
       ),
     );
