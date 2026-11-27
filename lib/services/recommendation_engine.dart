@@ -116,23 +116,49 @@ class RecommendationEngine {
     double mastery,
     List<QuestionAttempt> topicAttempts, {
     int recentWindow = 5,
+    DateTime? nextReviewAt,
+    DateTime? now,
   }) {
     final pct = (mastery.clamp(0.0, 1.0) * 100).round();
+    String baseReason;
     if (topicAttempts.isEmpty) {
-      return 'Mastery $pct%, no recent attempts yet';
+      baseReason = 'Mastery $pct%, no recent attempts yet';
+    } else {
+      final sorted = List<QuestionAttempt>.from(topicAttempts)
+        ..sort((a, b) => a.answeredAt.compareTo(b.answeredAt));
+      final recent = sorted.length <= recentWindow
+          ? sorted
+          : sorted.sublist(sorted.length - recentWindow);
+      final missed = recent.where((a) => !a.correct).length;
+      final total = recent.length;
+      final qWord = total == 1 ? 'question' : 'questions';
+      if (missed > 0) {
+        baseReason = 'Mastery $pct%, missed $missed of your last $total $qWord';
+      } else {
+        baseReason = 'Mastery $pct%, $total of your last $total $qWord correct';
+      }
     }
-    final sorted = List<QuestionAttempt>.from(topicAttempts)
-      ..sort((a, b) => a.answeredAt.compareTo(b.answeredAt));
-    final recent = sorted.length <= recentWindow
-        ? sorted
-        : sorted.sublist(sorted.length - recentWindow);
-    final missed = recent.where((a) => !a.correct).length;
-    final total = recent.length;
-    final qWord = total == 1 ? 'question' : 'questions';
-    if (missed > 0) {
-      return 'Mastery $pct%, missed $missed of your last $total $qWord';
+
+    String? overdueText;
+    if (nextReviewAt != null) {
+      final effectiveNow = now ?? DateTime.now();
+      final dueUtc = nextReviewAt.toUtc();
+      final nowUtc = effectiveNow.toUtc();
+      if (!nowUtc.isBefore(dueUtc)) {
+        final diffDays = nowUtc.difference(dueUtc).inDays;
+        if (diffDays == 0) {
+          overdueText = 'Due today';
+        } else if (diffDays >= 1) {
+          final dayWord = diffDays == 1 ? 'day' : 'days';
+          overdueText = 'Overdue by $diffDays $dayWord';
+        }
+      }
     }
-    return 'Mastery $pct%, $total of your last $total $qWord correct';
+
+    if (overdueText != null) {
+      return '$baseReason • $overdueText';
+    }
+    return baseReason;
   }
 
   /// Mastery similarity band (5%) within which overdue reviews rank ahead.
@@ -187,7 +213,12 @@ class RecommendationEngine {
         wrongCount: wrongCounts[key] ?? 0,
         lastAttempt: m.updatedAt,
         mastery: m.mastery,
-        reason: buildMasteryReason(m.mastery, topicAttempts),
+        reason: buildMasteryReason(
+          m.mastery,
+          topicAttempts,
+          nextReviewAt: m.nextReviewAt,
+          now: refNow,
+        ),
       );
     }).toList();
   }

@@ -60,6 +60,130 @@ void main() {
       );
     });
 
+    test('buildMasteryReason appends "Overdue by 2 days" when 2 days overdue', () {
+      final now = DateTime.utc(2026, 11, 27, 12, 0, 0);
+      final nextReviewAt = DateTime.utc(2026, 11, 25, 12, 0, 0);
+      final base = DateTime.utc(2026, 11, 12, 12, 0, 0);
+      final attempts = [
+        QuestionAttempt(
+          id: '1',
+          questionId: 'c1',
+          subject: 'Calculus',
+          topic: 'Derivatives',
+          correct: true,
+          timeTakenMs: 2500,
+          hintUsed: false,
+          answeredAt: base,
+        ),
+        QuestionAttempt(
+          id: '2',
+          questionId: 'c2',
+          subject: 'Calculus',
+          topic: 'Derivatives',
+          correct: false,
+          timeTakenMs: 3000,
+          hintUsed: false,
+          answeredAt: base.add(const Duration(seconds: 10)),
+        ),
+        QuestionAttempt(
+          id: '3',
+          questionId: 'c3',
+          subject: 'Calculus',
+          topic: 'Derivatives',
+          correct: false,
+          timeTakenMs: 3200,
+          hintUsed: false,
+          answeredAt: base.add(const Duration(seconds: 20)),
+        ),
+        QuestionAttempt(
+          id: '4',
+          questionId: 'c4',
+          subject: 'Calculus',
+          topic: 'Derivatives',
+          correct: false,
+          timeTakenMs: 3500,
+          hintUsed: false,
+          answeredAt: base.add(const Duration(seconds: 30)),
+        ),
+      ];
+
+      final reason = RecommendationEngine.buildMasteryReason(
+        0.32,
+        attempts,
+        nextReviewAt: nextReviewAt,
+        now: now,
+      );
+
+      expect(reason, 'Mastery 32%, missed 3 of your last 4 questions • Overdue by 2 days');
+      expect(reason, contains('Overdue by 2 days'));
+      expect(reason, contains('Mastery 32%, missed 3 of your last 4 questions'));
+    });
+
+    test('buildMasteryReason appends singular "Overdue by 1 day" when 1 day overdue', () {
+      final now = DateTime.utc(2026, 11, 27, 12, 0, 0);
+      final nextReviewAt = DateTime.utc(2026, 11, 26, 12, 0, 0);
+
+      final reason = RecommendationEngine.buildMasteryReason(
+        0.58,
+        [],
+        nextReviewAt: nextReviewAt,
+        now: now,
+      );
+
+      expect(reason, 'Mastery 58%, no recent attempts yet • Overdue by 1 day');
+      expect(reason, contains('Overdue by 1 day'));
+      expect(reason, isNot(contains('days')));
+    });
+
+    test('buildMasteryReason appends "Due today" when due earlier today', () {
+      final now = DateTime.utc(2026, 11, 27, 12, 0, 0);
+      final nextReviewAt = DateTime.utc(2026, 11, 27, 8, 0, 0);
+
+      final reason = RecommendationEngine.buildMasteryReason(
+        0.58,
+        [],
+        nextReviewAt: nextReviewAt,
+        now: now,
+      );
+
+      expect(reason, 'Mastery 58%, no recent attempts yet • Due today');
+      expect(reason, contains('Due today'));
+      expect(reason, isNot(contains('Overdue by 0 days')));
+    });
+
+    test('buildMasteryReason includes no overdue text when due in the future', () {
+      final now = DateTime.utc(2026, 11, 27, 12, 0, 0);
+      final nextReviewAt = DateTime.utc(2026, 11, 28, 12, 0, 0);
+
+      final reason = RecommendationEngine.buildMasteryReason(
+        0.45,
+        [],
+        nextReviewAt: nextReviewAt,
+        now: now,
+      );
+
+      expect(reason, 'Mastery 45%, no recent attempts yet');
+      expect(reason, isNot(contains('•')));
+      expect(reason, isNot(contains('Due')));
+      expect(reason, isNot(contains('Overdue')));
+    });
+
+    test('buildMasteryReason includes no overdue text when nextReviewAt is null', () {
+      final now = DateTime.utc(2026, 11, 27, 12, 0, 0);
+
+      final reason = RecommendationEngine.buildMasteryReason(
+        0.45,
+        [],
+        nextReviewAt: null,
+        now: now,
+      );
+
+      expect(reason, 'Mastery 45%, no recent attempts yet');
+      expect(reason, isNot(contains('•')));
+      expect(reason, isNot(contains('Due')));
+      expect(reason, isNot(contains('Overdue')));
+    });
+
     testWidgets('RecommendationsHubScreen displays one-line reason from real mastery and attempts', (tester) async {
       SharedPreferences.setMockInitialValues({});
       RecommendationEngine.useBktMastery = true;
