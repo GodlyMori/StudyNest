@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../data/quiz_questions.dart';
 import '../models/quiz_question.dart';
 import 'bkt_mastery.dart';
 
@@ -154,5 +155,16 @@ class QuestionSelector {
     final idx = recentAttemptIds.lastIndexOf(questionId);
     if (idx < 0) return -1; // Never attempted -> highest priority (lowest score)
     return idx; // Higher index = attempted more recently
+  }
+
+  /// Builds an 8-question diagnostic pool (2 per subject, difficulty 1 & 2, distinct topics, mixed order).
+  static List<QuizQuestion> buildDiagnosticPool({
+    List<QuizQuestion>? sourceBank,
+    Random? random,
+  }) {
+    return QuizQuestionBank.buildDiagnosticPool(
+      sourceBank: sourceBank,
+      random: random,
+    );
   }
 }

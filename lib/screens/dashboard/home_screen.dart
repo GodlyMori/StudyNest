@@ -378,9 +378,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const QuizScreen(),
+                                builder: (context) => const QuizScreen(isDiagnostic: true),
                               ),
-                            );
+                            ).then((_) => _loadHomeData());
                           },
                         ),
                         _buildQuickActionCard(
@@ -691,7 +691,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () async {
                 await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const QuizScreen()),
+                  MaterialPageRoute(builder: (context) => const QuizScreen(isDiagnostic: true)),
                 );
                 _loadHomeData();
               },

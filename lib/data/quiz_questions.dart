@@ -1,3 +1,4 @@
+import 'dart:math';
 import '../models/quiz_question.dart';
 
 class QuizQuestionBank {
@@ -1556,5 +1557,87 @@ class QuizQuestionBank {
     }
     // Default fallback to Calculus
     return calculusQuestions;
+  }
+
+  /// Builds an 8-question diagnostic pool (2 per subject, difficulty 1 & 2, distinct topics, mixed order).
+  static List<QuizQuestion> buildDiagnosticPool({
+    List<QuizQuestion>? sourceBank,
+    Random? random,
+  }) {
+    final allQuestions = sourceBank ??
+        [
+          ...calculusQuestions,
+          ...biologyQuestions,
+          ...historyQuestions,
+          ...physicsQuestions,
+        ];
+
+    const subjects = ['Calculus', 'Biology', 'History', 'Physics'];
+    final selectedQuestions = <QuizQuestion>[];
+
+    for (final subject in subjects) {
+      final subjectQuestions = allQuestions
+          .where((q) => q.subject.toLowerCase() == subject.toLowerCase())
+          .toList();
+
+      final diff1Candidates =
+          subjectQuestions.where((q) => q.difficulty == 1).toList();
+      final diff2Candidates =
+          subjectQuestions.where((q) => q.difficulty == 2).toList();
+
+      if (diff1Candidates.isEmpty || diff2Candidates.isEmpty) {
+        selectedQuestions.addAll(subjectQuestions.take(2));
+        continue;
+      }
+
+      final q1 = (random != null)
+          ? diff1Candidates[random.nextInt(diff1Candidates.length)]
+          : diff1Candidates.first;
+
+      final diff2DifferentTopic = diff2Candidates
+          .where((q) => q.topic != q1.topic && q.id != q1.id)
+          .toList();
+
+      final q2 = diff2DifferentTopic.isNotEmpty
+          ? ((random != null)
+              ? diff2DifferentTopic[random.nextInt(diff2DifferentTopic.length)]
+              : diff2DifferentTopic.first)
+          : ((random != null)
+              ? diff2Candidates[random.nextInt(diff2Candidates.length)]
+              : diff2Candidates.first);
+
+      selectedQuestions.add(q1);
+      selectedQuestions.add(q2);
+    }
+
+    final mixed = List<QuizQuestion>.from(selectedQuestions);
+    if (random != null) {
+      mixed.shuffle(random);
+      if (mixed.length >= 2 && mixed[0].subject == mixed[1].subject) {
+        final lastIdx = mixed.length - 1;
+        final temp = mixed[1];
+        mixed[1] = mixed[lastIdx];
+        mixed[lastIdx] = temp;
+      }
+    } else {
+      final d1 = [
+        selectedQuestions[0],
+        selectedQuestions[2],
+        selectedQuestions[4],
+        selectedQuestions[6],
+      ];
+      final d2 = [
+        selectedQuestions[1],
+        selectedQuestions[3],
+        selectedQuestions[5],
+        selectedQuestions[7],
+      ];
+      mixed.clear();
+      for (var i = 0; i < 4; i++) {
+        mixed.add(d1[i]);
+        mixed.add(d2[(i + 2) % 4]);
+      }
+    }
+    return mixed;
   }
 }

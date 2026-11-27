@@ -325,7 +325,7 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
               onPressed: () async {
                 await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const QuizScreen()),
+                  MaterialPageRoute(builder: (context) => const QuizScreen(isDiagnostic: true)),
                 );
                 _loadRecommendations();
               },

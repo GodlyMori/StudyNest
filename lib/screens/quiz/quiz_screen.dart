@@ -32,6 +32,9 @@ class QuizScreen extends StatefulWidget {
   /// Optional callback invoked when the quiz finishes with (correctCount, totalCount).
   final void Function(int score, int total)? onQuizCompleted;
 
+  /// Whether this quiz is running in diagnostic mode (Task: Real diagnostic quiz).
+  final bool isDiagnostic;
+
   const QuizScreen({
     super.key,
     this.subject = 'Calculus',
@@ -39,6 +42,7 @@ class QuizScreen extends StatefulWidget {
     this.customPool,
     this.targetQuestionCount,
     this.onQuizCompleted,
+    this.isDiagnostic = false,
   });
 
   static String calculateGrade(int score) {
@@ -81,11 +85,18 @@ class _QuizScreenState extends State<QuizScreen> {
   final Stopwatch _questionStopwatch = Stopwatch();
   bool _hintUsedForCurrentQuestion = false;
   final Map<String, ({int correct, int total, int hints})> _topicSessionStats = {};
+  final Map<String, String> _topicSubjects = {};
 
   @override
   void initState() {
     super.initState();
-    if (widget.customPool != null) {
+    if (widget.isDiagnostic) {
+      _pool = widget.customPool ?? QuizQuestionBank.buildDiagnosticPool();
+      _targetTotalQuestions = min(
+        widget.targetQuestionCount ?? 8,
+        _pool.length,
+      );
+    } else if (widget.customPool != null) {
       _pool = List<QuizQuestion>.from(widget.customPool!);
       _targetTotalQuestions = min(
         widget.targetQuestionCount ?? 10,
@@ -96,13 +107,19 @@ class _QuizScreenState extends State<QuizScreen> {
       _targetTotalQuestions = min(10, _pool.length);
     }
 
+    // Scale timer allowance derived from default per-question rate (272s / 10q)
+    const int defaultTotalQuestions = 10;
+    const int defaultTimerSeconds = 272;
+    const perQuestionAllowance = defaultTimerSeconds / defaultTotalQuestions;
+    _secondsRemaining = (_targetTotalQuestions * perQuestionAllowance).round();
+
     if (_pool.isEmpty) {
       _questions = [];
       _startTimer();
       return;
     }
 
-    final isDiag = widget.subject.toLowerCase().contains('diagnostic');
+    final isDiag = widget.isDiagnostic || widget.subject.toLowerCase().contains('diagnostic');
 
     if (widget.isAdaptive) {
       // Pick the first question adaptively (diagnostic starts at medium difficulty 2)
@@ -205,10 +222,11 @@ class _QuizScreenState extends State<QuizScreen> {
       total: prevTopicStats.total + 1,
       hints: prevTopicStats.hints + (hintUsed ? 1 : 0),
     );
+    _topicSubjects[question.topic] = question.subject;
 
     // Record topic performance into recommendation engine
     RecommendationEngine.recordAnswer(
-      subject: widget.subject,
+      subject: question.subject,
       topic: question.topic,
       isCorrect: isCorrect,
     );
@@ -273,7 +291,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
     if (widget.isAdaptive) {
       if (_questions.length < _targetTotalQuestions) {
-        final isDiag = widget.subject.toLowerCase().contains('diagnostic');
+        final isDiag = widget.isDiagnostic || widget.subject.toLowerCase().contains('diagnostic');
         final nextQ = QuestionSelector.pickNextQuestion(
           availablePool: _pool,
           servedInCurrentQuiz: _servedQuestionIds,
@@ -326,17 +344,19 @@ class _QuizScreenState extends State<QuizScreen> {
     final score = total > 0 ? ((_correctCount / total) * 100).round() : 0;
     final grade = QuizScreen.calculateGrade(score);
 
+    final displaySubject = widget.isDiagnostic ? 'Diagnostic' : widget.subject;
+
     // Save completed quiz result (Phase 1 & Phase 2 contract)
     final user = SupabaseService.instance.currentUser;
     if (user == null) {
       await GuestScoreService.saveGuestScore(
-        subject: widget.subject,
+        subject: displaySubject,
         score: score,
         grade: grade,
       );
     } else {
       await GuestScoreService.saveGuestScore(
-        subject: widget.subject,
+        subject: displaySubject,
         score: score,
         grade: grade,
       );
@@ -345,8 +365,9 @@ class _QuizScreenState extends State<QuizScreen> {
 
     // Update SM-2 spaced-repetition schedule per topic based on session performance
     for (final entry in _topicSessionStats.entries) {
+      final topicSubject = _topicSubjects[entry.key] ?? widget.subject;
       await MasteryService.tracker.recordTopicReview(
-        subject: widget.subject,
+        subject: topicSubject,
         topic: entry.key,
         correctCount: entry.value.correct,
         totalCount: entry.value.total,
@@ -359,17 +380,37 @@ class _QuizScreenState extends State<QuizScreen> {
 
     widget.onQuizCompleted?.call(_correctCount, total);
 
+    Map<String, int>? subjectMasteries;
+    if (widget.isDiagnostic) {
+      final masteries = await MasteryService.loadOrRebuildMasteries();
+      const subjects = ['Calculus', 'Biology', 'History', 'Physics'];
+      final map = <String, int>{};
+      for (final s in subjects) {
+        final entries = masteries.values
+            .where((m) => m.subject.toLowerCase() == s.toLowerCase())
+            .toList();
+        if (entries.isNotEmpty) {
+          final avg =
+              entries.map((m) => m.mastery).reduce((a, b) => a + b) / entries.length;
+          map[s] = (avg.clamp(0.0, 1.0) * 100).round();
+        }
+      }
+      subjectMasteries = map;
+    }
+
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => QuizResultsScreen(
-          subject: widget.subject,
+          subject: displaySubject,
           score: score,
           grade: grade,
           strongTopics: _strongTopics.toList(),
           focusTopics: _focusTopics.toList(),
           reviewItems: _reviewItems,
+          isDiagnostic: widget.isDiagnostic,
+          subjectMasteries: subjectMasteries,
         ),
       ),
     );
@@ -582,6 +623,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     selected: isSelected,
                     label: 'Option ${String.fromCharCode(65 + index)}: ${question.options[index]}',
                     child: GestureDetector(
+                      key: Key('quiz_option_$index'),
                       onTap: () => _onOptionTapped(index),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),

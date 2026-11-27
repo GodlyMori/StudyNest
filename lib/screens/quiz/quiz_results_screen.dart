@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_assets.dart';
 import '../../models/question_review_item.dart';
+import '../../services/mastery_service.dart';
 import '../../services/recommendation_engine.dart';
 import '../materials/materials_screen.dart';
 import '../recommendations/recommendations_hub_screen.dart';
@@ -15,6 +16,8 @@ class QuizResultsScreen extends StatefulWidget {
   final List<String> strongTopics;
   final List<String> focusTopics;
   final List<QuestionReviewItem>? reviewItems;
+  final bool isDiagnostic;
+  final Map<String, int>? subjectMasteries;
 
   const QuizResultsScreen({
     super.key,
@@ -24,6 +27,8 @@ class QuizResultsScreen extends StatefulWidget {
     this.strongTopics = const ['Algebra', 'Functions'],
     this.focusTopics = const ['Derivatives', 'Limits'],
     this.reviewItems,
+    this.isDiagnostic = false,
+    this.subjectMasteries,
   });
 
   @override
@@ -32,18 +37,38 @@ class QuizResultsScreen extends StatefulWidget {
 
 class _QuizResultsScreenState extends State<QuizResultsScreen> {
   List<RecommendationItem> _recommendations = [];
+  Map<String, int> _subjectMasteries = {};
 
   @override
   void initState() {
     super.initState();
+    if (widget.subjectMasteries != null) {
+      _subjectMasteries = Map<String, int>.from(widget.subjectMasteries!);
+    }
     _loadRecommendations();
   }
 
   Future<void> _loadRecommendations() async {
     final list = await RecommendationEngine.getRankedRecommendations();
+    Map<String, int> subjectMasteries = Map<String, int>.from(_subjectMasteries);
+    if (widget.isDiagnostic && subjectMasteries.isEmpty) {
+      final masteries = await MasteryService.loadOrRebuildMasteries();
+      const subjects = ['Calculus', 'Biology', 'History', 'Physics'];
+      for (final s in subjects) {
+        final entries = masteries.values
+            .where((m) => m.subject.toLowerCase() == s.toLowerCase())
+            .toList();
+        if (entries.isNotEmpty) {
+          final avg =
+              entries.map((m) => m.mastery).reduce((a, b) => a + b) / entries.length;
+          subjectMasteries[s] = (avg.clamp(0.0, 1.0) * 100).round();
+        }
+      }
+    }
     if (mounted) {
       setState(() {
         _recommendations = list;
+        _subjectMasteries = subjectMasteries;
       });
     }
   }
@@ -77,14 +102,70 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
-                'Your Results',
-                style: TextStyle(
+              Text(
+                widget.isDiagnostic
+                    ? 'Diagnostic complete — your starting level'
+                    : 'Your Results',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
                 ),
               ),
+
+              if (widget.isDiagnostic && _subjectMasteries.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Starting Level by Subject',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ..._subjectMasteries.entries.map((entry) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                entry.key,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                              Text(
+                                '${entry.value}%',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.accentDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 24),
 
