@@ -93,10 +93,6 @@ class AppTheme {
           fontWeight: FontWeight.bold,
         ),
       ),
-      cardTheme: const CardThemeData(
-        color: AppColors.surfaceDark,
-        elevation: 0,
-      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.accent,
