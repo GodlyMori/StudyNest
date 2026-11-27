@@ -20,10 +20,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   static const String _keyPushNotifications = 'settings_push_notifications';
   static const String _keyStudyReminders = 'settings_study_reminders';
   static const String _keySoundEffects = 'settings_sound_effects';
+  static const String _keyHiddenFromSearch = 'settings_hidden_from_search';
 
   bool _pushNotifications = true;
   bool _studyReminders = true;
   bool _soundEffects = true;
+  bool _hiddenFromSearch = false;
+  bool _isSavingHidden = false;
   int _dailyGoal = 1;
 
   @override
@@ -35,12 +38,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final goal = await StreakService.getDailyGoal();
+    final cachedHidden = prefs.getBool(_keyHiddenFromSearch) ?? false;
+    bool hiddenFromSearch = cachedHidden;
+
+    final user = SupabaseService.instance.currentUser;
+    if (user != null && SupabaseService.instance.isInitialized) {
+      try {
+        final profile = await SupabaseService.instance.getProfile(user.id);
+        if (profile != null && profile.containsKey('hidden_from_search')) {
+          hiddenFromSearch = profile['hidden_from_search'] as bool? ?? false;
+          await prefs.setBool(_keyHiddenFromSearch, hiddenFromSearch);
+        }
+      } catch (e) {
+        debugPrint('Note loading hidden_from_search: $e');
+      }
+    }
+
     if (mounted) {
       setState(() {
         _pushNotifications = prefs.getBool(_keyPushNotifications) ?? true;
         _studyReminders = prefs.getBool(_keyStudyReminders) ?? true;
         _soundEffects = prefs.getBool(_keySoundEffects) ?? true;
         _dailyGoal = goal;
+        _hiddenFromSearch = hiddenFromSearch;
       });
     }
   }
@@ -61,6 +81,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _soundEffects = val);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keySoundEffects, val);
+  }
+
+  // Honest limitation:
+  // The public.profiles SELECT RLS policy is broad (using (true) - any
+  // authenticated user can read profile rows). This toggle hides the user from
+  // Find Users SEARCH RESULTS only; it does not make the row unreadable by
+  // direct ID lookup.
+  Future<void> _setHiddenFromSearch(bool val) async {
+    final user = SupabaseService.instance.currentUser;
+    if (user == null) return;
+
+    final prev = _hiddenFromSearch;
+    setState(() {
+      _hiddenFromSearch = val;
+      _isSavingHidden = true;
+    });
+
+    try {
+      await SupabaseService.instance.updateProfile(
+        userId: user.id,
+        hiddenFromSearch: val,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyHiddenFromSearch, val);
+      if (mounted) {
+        setState(() {
+          _isSavingHidden = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hiddenFromSearch = prev;
+          _isSavingHidden = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update privacy setting: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   void _handleLogout() {
@@ -118,7 +181,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           children: [
             const Text(
               'Preferences',
@@ -128,7 +191,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
 
             _buildSwitchTile(
               title: 'Push Notifications',
@@ -136,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _pushNotifications,
               onChanged: _setPushNotifications,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
 
             _buildSwitchTile(
               title: 'Study Reminders',
@@ -144,7 +207,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _studyReminders,
               onChanged: _setStudyReminders,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
 
             _buildSwitchTile(
               title: 'Sound & Mascot Effects',
@@ -152,8 +215,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _soundEffects,
               onChanged: _setSoundEffects,
             ),
+            const SizedBox(height: 6),
 
-            const SizedBox(height: 24),
+            Builder(
+              builder: (context) {
+                final isGuest = SupabaseService.instance.currentUser == null;
+                return _buildSwitchTile(
+                  title: 'Hide me from search',
+                  subtitle: isGuest
+                      ? 'Available for signed-in accounts'
+                      : 'Prevent your profile from appearing in Find Users search',
+                  value: _hiddenFromSearch,
+                  onChanged: (isGuest || _isSavingHidden) ? null : _setHiddenFromSearch,
+                  switchKey: const Key('hide_from_search_switch'),
+                );
+              },
+            ),
+
+            const SizedBox(height: 16),
 
             const Text(
               'Account & Security',
@@ -163,7 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
 
             _buildActionTile(
               title: 'Edit Profile',
@@ -175,7 +254,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
 
             _buildActionTile(
               title: 'Change Password',
@@ -187,7 +266,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
 
             _buildActionTile(
               title: 'Privacy & Terms',
@@ -199,7 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
 
             _buildDailyGoalTile(),
 
@@ -285,7 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Semantics(
       label: 'Daily Quiz Goal: $_dailyGoal ${_dailyGoal == 1 ? "quiz" : "quizzes"} per day',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -344,13 +423,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String title,
     required String subtitle,
     required bool value,
-    required ValueChanged<bool> onChanged,
+    required ValueChanged<bool>? onChanged,
+    Key? switchKey,
   }) {
     return Semantics(
       button: true,
       label: '$title toggle',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -383,6 +463,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             Switch(
+              key: switchKey,
               value: value,
               activeColor: AppColors.accent,
               onChanged: onChanged,
@@ -410,6 +491,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Material(
           color: Colors.transparent,
           child: ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
             leading: Icon(icon, color: AppColors.textDark),
             title: Text(
               title,

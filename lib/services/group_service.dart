@@ -268,9 +268,14 @@ class GroupService {
     // Try Supabase first if available
     if (SupabaseService.instance.isInitialized) {
       try {
+        // Honest limitation: The public.profiles SELECT RLS policy is broad
+        // (using (true) - any authenticated user can read profile rows), so
+        // hidden_from_search hides the user from Find Users SEARCH RESULTS only;
+        // it does not make the row unreadable by direct ID lookup.
         final res = await SupabaseService.instance.client
             .from('profiles')
             .select('id, display_name, subjects, level')
+            .eq('hidden_from_search', false)
             .ilike('display_name', '%$q%')
             .limit(20);
 

@@ -141,20 +141,32 @@ class SupabaseService {
   }
 
   /// Update profile row for a given user id.
+  ///
+  /// Honest limitation:
+  /// The public.profiles SELECT RLS policy is broad (using (true) - any
+  /// authenticated user can read profile rows). Setting hidden_from_search to
+  /// true hides the user from Find Users SEARCH RESULTS only; it does not make
+  /// the row unreadable by direct ID lookup.
   Future<void> updateProfile({
     required String userId,
-    required String displayName,
+    String? displayName,
     List<String>? subjects,
+    bool? hiddenFromSearch,
   }) async {
-    final initials = _extractInitials(displayName);
-    final data = <String, dynamic>{
-      'display_name': displayName.trim(),
-      'avatar_initials': initials,
-    };
+    final data = <String, dynamic>{};
+    if (displayName != null) {
+      data['display_name'] = displayName.trim();
+      data['avatar_initials'] = _extractInitials(displayName);
+    }
     if (subjects != null) {
       data['subjects'] = subjects;
     }
-    await client.from('profiles').update(data).eq('id', userId);
+    if (hiddenFromSearch != null) {
+      data['hidden_from_search'] = hiddenFromSearch;
+    }
+    if (data.isNotEmpty) {
+      await client.from('profiles').update(data).eq('id', userId);
+    }
   }
 
   /// Change password for currently authenticated user.
