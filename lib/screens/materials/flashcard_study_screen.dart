@@ -90,23 +90,23 @@ class _FlashcardStudyScreenState extends State<FlashcardStudyScreen> {
     final card = widget.cards[_currentIndex];
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: Semantics(
           button: true,
           label: 'Close flashcards',
           child: IconButton(
             tooltip: 'Close flashcards',
-            icon: const Icon(Icons.close, color: AppColors.textDark),
+            icon: Icon(Icons.close, color: context.textColor),
             onPressed: () => Navigator.pop(context),
           ),
         ),
         title: Text(
           '${widget.title} (${_currentIndex + 1}/${widget.cards.length})',
-          style: const TextStyle(
-            color: AppColors.textDark,
+          style: TextStyle(
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -120,7 +120,7 @@ class _FlashcardStudyScreenState extends State<FlashcardStudyScreen> {
             children: [
               LinearProgressIndicator(
                 value: (_currentIndex + 1) / widget.cards.length,
-                backgroundColor: AppColors.border,
+                backgroundColor: context.borderColor,
                 valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                 minHeight: 6,
                 borderRadius: BorderRadius.circular(3),
@@ -141,10 +141,10 @@ class _FlashcardStudyScreenState extends State<FlashcardStudyScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(28),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: _isFlipped ? AppColors.accent : AppColors.border,
+                          color: _isFlipped ? AppColors.accent : context.borderColor,
                           width: 2,
                         ),
                         boxShadow: [
@@ -188,10 +188,10 @@ class _FlashcardStudyScreenState extends State<FlashcardStudyScreen> {
                               child: Text(
                                 _isFlipped ? card.back : card.front,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.textDark,
+                                  color: context.textColor,
                                   height: 1.4,
                                 ),
                               ),

@@ -86,10 +86,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       ),
       bottomNavigationBar: Container(
         height: 74,
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: context.cardColor,
           border: Border(
-            top: BorderSide(color: AppColors.border, width: 1),
+            top: BorderSide(color: context.borderColor, width: 1),
           ),
         ),
         child: Row(
@@ -124,7 +124,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                 width: 20,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.accent : const Color(0xFFE2E8F0),
+                  color: isSelected ? AppColors.accent : (context.isDark ? AppColors.borderDark : const Color(0xFFE2E8F0)),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -132,7 +132,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
               Icon(
                 icon,
                 size: 20,
-                color: isSelected ? AppColors.textDark : AppColors.textSecondary,
+                color: isSelected ? (context.isDark ? AppColors.textLight : AppColors.textDark) : context.textSecondaryColor,
               ),
               const SizedBox(height: 3),
               Text(
@@ -140,7 +140,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? AppColors.textDark : AppColors.textSecondary,
+                  color: isSelected ? (context.isDark ? AppColors.textLight : AppColors.textDark) : context.textSecondaryColor,
                 ),
               ),
             ],

@@ -188,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final level = XpService.levelFor(_totalXp);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -199,12 +199,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Profile & Progress',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                   Semantics(
@@ -212,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     label: 'Open settings',
                     child: IconButton(
                       tooltip: 'Open settings',
-                      icon: const Icon(Icons.settings_outlined, color: AppColors.textDark),
+                      icon: Icon(Icons.settings_outlined, color: context.textColor),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -253,10 +253,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Text(
                           displayName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -293,16 +293,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Topic Mastery & Analytics Section (Task 5.3)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text(
                     'Topic mastery',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
-                  Text(
+                  const Text(
                     'Tap topic to practice',
                     style: TextStyle(
                       fontSize: 12,
@@ -321,12 +321,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 28),
 
               // Quiz History Section
-              const Text(
+              Text(
                 'Quiz history',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 14),
@@ -399,9 +399,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,12 +426,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
+                  Text(
                     'Daily Quiz Goal',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                 ],
@@ -481,9 +481,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12.0),
-            child: Divider(height: 1, color: AppColors.border),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: Divider(height: 1, color: context.borderColor),
           ),
 
           // Streak & Freeze Row
@@ -505,10 +505,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Text(
                         '$streak-day streak',
                         key: const Key('streak_count_text'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                         ),
                       ),
                     ],
@@ -531,8 +531,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ElevatedButton(
                   key: const Key('use_streak_freeze_button'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.backgroundDark,
-                    foregroundColor: Colors.white,
+                    backgroundColor: context.isDark ? AppColors.accent : AppColors.backgroundDark,
+                    foregroundColor: context.isDark ? AppColors.textDark : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -573,9 +573,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderColor),
         ),
       child: Material(
         color: Colors.transparent,
@@ -602,10 +602,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Flexible(
                             child: Text(
                               data.topic,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textDark,
+                                color: context.textColor,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -614,7 +614,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.surfaceMuted,
+                              color: context.surfaceMutedColor,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -685,9 +685,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -697,10 +697,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 4),

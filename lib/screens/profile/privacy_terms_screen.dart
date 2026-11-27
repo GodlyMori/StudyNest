@@ -8,19 +8,19 @@ class PrivacyTermsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Privacy & Terms',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -37,19 +37,19 @@ class PrivacyTermsScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'StudyNest',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                     SizedBox(height: 4),
@@ -68,6 +68,7 @@ class PrivacyTermsScreen extends StatelessWidget {
 
               // Section 1: Privacy Summary
               _buildSection(
+                context,
                 title: 'Data & Privacy Summary',
                 icon: Icons.privacy_tip_outlined,
                 content:
@@ -78,6 +79,7 @@ class PrivacyTermsScreen extends StatelessWidget {
 
               // Section 2: Where Your Data is Stored
               _buildSection(
+                context,
                 title: 'Storage & Syncing',
                 icon: Icons.cloud_outlined,
                 content:
@@ -90,6 +92,7 @@ class PrivacyTermsScreen extends StatelessWidget {
 
               // Section 3: Terms of Use
               _buildSection(
+                context,
                 title: 'Terms of Service',
                 icon: Icons.description_outlined,
                 content:
@@ -115,7 +118,8 @@ class PrivacyTermsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSection({
+  Widget _buildSection(
+    BuildContext context, {
     required String title,
     required IconData icon,
     required String content,
@@ -124,9 +128,9 @@ class PrivacyTermsScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,10 +141,10 @@ class PrivacyTermsScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
             ],

@@ -79,11 +79,11 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -110,10 +110,10 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                     ? 'Diagnostic complete — your starting level'
                     : 'Your Results',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
 
@@ -123,19 +123,19 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.cardColor,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: context.borderColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Starting Level by Subject',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -147,10 +147,10 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                             children: [
                               Text(
                                 entry.key,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.textDark,
+                                  color: context.textColor,
                                 ),
                               ),
                               Text(
@@ -192,10 +192,10 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                     children: [
                       Text(
                         '${widget.score}%',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                         ),
                       ),
                       Text(
@@ -216,10 +216,10 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
               // Strengths & Focus (Ranked dynamically)
               Text(
                 'Strengths • ${widget.strongTopics.isNotEmpty ? widget.strongTopics.join(', ') : widget.subject}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 6),
@@ -240,19 +240,19 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.cardColor,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: context.borderColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Mastery Progress',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -261,10 +261,10 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(
                             '${movement.subject} — ${movement.topic} ${movement.beforePct}% → ${movement.afterPct}%',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textDark,
+                              color: context.textColor,
                             ),
                           ),
                         );
@@ -280,9 +280,9 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: Semantics(
                   button: true,
@@ -314,12 +314,12 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                                   width: 38,
                                   height: 38,
                                   decoration: BoxDecoration(
-                                    color: AppColors.surfaceMuted,
+                                    color: context.surfaceMutedColor,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.rate_review_outlined,
-                                    color: AppColors.textDark,
+                                    color: context.textColor,
                                     size: 20,
                                   ),
                                 ),
@@ -327,12 +327,12 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Review Questions',
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.textDark,
+                                        color: context.textColor,
                                       ),
                                     ),
                                     Text(
@@ -435,13 +435,13 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
+                    children: [
                       Text(
                         'ML Recommendations Hub',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                         ),
                       ),
                       Icon(
@@ -511,9 +511,9 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -524,10 +524,10 @@ class _QuizResultsScreenState extends State<QuizResultsScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+                    color: context.textColor,
                   ),
                 ),
                 const SizedBox(height: 4),

@@ -15,6 +15,9 @@ class AppColors {
   static const Color backgroundDark = Color(0xFF1E293B); // Slate 800
   static const Color surfaceDark = Color(0xFF26364F);     // Dark card surface
   static const Color cardDarkElevated = Color(0xFF334155); // Slate 700 chips / bubbles
+  static const Color scaffoldDark = Color(0xFF0F172A);    // Scaffold background #0F172A
+  static const Color cardDark = Color(0xFF26364F);        // Cards #26364F
+  static const Color textSecondaryDark = Color(0xFFCBD5E1);// Secondary text slate-300
 
   // Light Dashboard Backgrounds
   static const Color backgroundLight = Color(0xFFF8FAFC); // Slate 50
@@ -39,4 +42,16 @@ class AppColors {
   // Border & Dividers
   static const Color border = Color(0xFFE2E8F0);
   static const Color borderDark = Color(0xFF334155);
+}
+
+extension ThemeContext on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+  Color get surfaceColor => isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
+  Color get cardColor => isDark ? AppColors.surfaceDark : Colors.white;
+  Color get scaffoldBackgroundColor => isDark ? AppColors.primaryDark : AppColors.backgroundLight;
+  Color get textColor => isDark ? AppColors.textLight : AppColors.textDark;
+  Color get textSecondaryColor => isDark ? AppColors.textLightMuted : AppColors.textSecondary;
+  Color get textMutedColor => isDark ? AppColors.textLightMuted : AppColors.textMuted;
+  Color get borderColor => isDark ? AppColors.borderDark : AppColors.border;
+  Color get surfaceMutedColor => isDark ? AppColors.cardDarkElevated : AppColors.surfaceMuted;
 }

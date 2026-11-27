@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'screens/auth/welcome_screen.dart';
 import 'services/attempt_sync_service.dart';
@@ -8,6 +9,11 @@ import 'services/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load persisted theme preference
+  final prefs = await SharedPreferences.getInstance();
+  final isDark = prefs.getBool('settings_dark_mode') ?? false;
+  StudyNestApp.themeModeNotifier.value = isDark ? ThemeMode.dark : ThemeMode.light;
 
   // Initialize Supabase from --dart-define environment variables:
   // e.g. flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
@@ -29,13 +35,24 @@ Future<void> main() async {
 class StudyNestApp extends StatelessWidget {
   const StudyNestApp({super.key});
 
+  /// Global notifier allowing instant theme switching across the app
+  static final ValueNotifier<ThemeMode> themeModeNotifier =
+      ValueNotifier<ThemeMode>(ThemeMode.light);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'StudyNest',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: const WelcomeScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeModeNotifier,
+      builder: (context, mode, child) {
+        return MaterialApp(
+          title: 'StudyNest',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: mode,
+          home: const WelcomeScreen(),
+        );
+      },
     );
   }
 }

@@ -111,7 +111,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -122,12 +122,12 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Study Materials',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                   Semantics(
@@ -164,9 +164,9 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
               Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
@@ -191,9 +191,9 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                           isDense: true,
                           contentPadding: EdgeInsets.symmetric(vertical: 12),
                         ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                         ),
                         onChanged: (value) {
                           setState(() {
@@ -247,13 +247,13 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 18),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.backgroundDark
-                                  : Colors.white,
+                                  ? (context.isDark ? AppColors.accent : AppColors.backgroundDark)
+                                  : context.cardColor,
                               borderRadius: BorderRadius.circular(17),
                               border: Border.all(
                                 color: isSelected
                                     ? Colors.transparent
-                                    : AppColors.border,
+                                    : context.borderColor,
                               ),
                             ),
                             alignment: Alignment.center,
@@ -263,8 +263,8 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: isSelected
-                                    ? Colors.white
-                                    : AppColors.textDark,
+                                    ? (context.isDark ? AppColors.textDark : Colors.white)
+                                    : context.textColor,
                               ),
                             ),
                           ),
@@ -316,7 +316,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                       button: true,
                       label: 'Open ${material.title}',
                       child: Material(
-                        color: Colors.white,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(16),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
@@ -326,7 +326,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 18),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(color: context.borderColor),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -338,10 +338,10 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                     children: [
                                       Text(
                                         material.title,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.textDark,
+                                          color: context.textColor,
                                         ),
                                       ),
                                       const SizedBox(height: 4),

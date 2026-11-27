@@ -266,19 +266,19 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Add Study Session',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -292,20 +292,20 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Session Title
-              const Text(
+              Text(
                 'Session Title',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
@@ -319,9 +319,9 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                     ),
                     border: InputBorder.none,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
-                    color: AppColors.textDark,
+                    color: context.textColor,
                   ),
                 ),
               ),
@@ -329,12 +329,12 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
               const SizedBox(height: 20),
 
               // Subject Dropdown
-              const Text(
+              Text(
                 'Subject',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -342,13 +342,14 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _selectedSubject,
+                    dropdownColor: context.cardColor,
                     icon: const Icon(
                       Icons.arrow_drop_down,
                       color: AppColors.textSecondary,
@@ -359,9 +360,9 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                         value: subject,
                         child: Text(
                           subject,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                       );
@@ -380,12 +381,12 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
               const SizedBox(height: 20),
 
               // Date Field (Figma frame 43 picker)
-              const Text(
+              Text(
                 'Date',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -398,19 +399,19 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                     height: 52,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: context.borderColor),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           _formatDisplayDate(_selectedDate),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                         const Icon(
@@ -427,12 +428,12 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
               const SizedBox(height: 20),
 
               // Time Field (Figma frame 44 picker)
-              const Text(
+              Text(
                 'Time',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -445,19 +446,19 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                     height: 52,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: context.borderColor),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           _formatTimeOfDay(_selectedTime),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                         const Icon(
@@ -477,9 +478,9 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -507,13 +508,13 @@ class _AddStudySessionScreenState extends State<AddStudySessionScreen> {
                         const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               'Remind Me',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textDark,
+                                color: context.textColor,
                               ),
                             ),
                             SizedBox(height: 2),

@@ -114,6 +114,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
     showModalBottomSheet(
       context: context,
+      backgroundColor: context.cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -124,31 +125,32 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Start a Quiz Challenge',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Subject',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textColor),
               ),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: selectedSubject,
+                dropdownColor: context.cardColor,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'Calculus', child: Text('Calculus')),
-                  DropdownMenuItem(value: 'Biology', child: Text('Biology')),
-                  DropdownMenuItem(value: 'History', child: Text('History')),
-                  DropdownMenuItem(value: 'Physics', child: Text('Physics')),
+                items: [
+                  DropdownMenuItem(value: 'Calculus', child: Text('Calculus', style: TextStyle(color: context.textColor))),
+                  DropdownMenuItem(value: 'Biology', child: Text('Biology', style: TextStyle(color: context.textColor))),
+                  DropdownMenuItem(value: 'History', child: Text('History', style: TextStyle(color: context.textColor))),
+                  DropdownMenuItem(value: 'Physics', child: Text('Physics', style: TextStyle(color: context.textColor))),
                 ],
                 onChanged: (val) {
                   if (val != null) {
@@ -157,9 +159,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Number of Questions',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textColor),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -287,10 +289,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               children: [
                 Text(
                   entry.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+                    color: context.textColor,
                   ),
                 ),
                 Text(
@@ -339,9 +341,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,12 +391,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Ranked Board',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
+              color: context.textColor,
             ),
           ),
           const SizedBox(height: 6),
@@ -427,10 +429,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       Expanded(
                         child: Text(
                           attempt.userName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                       ),
@@ -457,19 +459,19 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     final sharedMaterials = StudyMaterialBank.getMaterials();
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context, true),
         ),
         title: Text(
           _group.name,
-          style: const TextStyle(
-            color: AppColors.textDark,
+          style: TextStyle(
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -478,7 +480,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         actions: [
           IconButton(
             tooltip: 'Invite Members',
-            icon: const Icon(Icons.person_add_alt_1_outlined, color: AppColors.textDark),
+            icon: Icon(Icons.person_add_alt_1_outlined, color: context.textColor),
             onPressed: _openInviteUsers,
           ),
         ],
@@ -496,9 +498,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: context.borderColor),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -546,10 +548,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           const SizedBox(height: 12),
                           Text(
                             _group.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textDark,
+                              color: context.textColor,
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -613,10 +615,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           children: [
                             Text(
                               'Members (${_group.memberCount})',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textDark,
+                                color: context.textColor,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -656,9 +658,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: context.borderColor),
                       ),
                       child: _leaderboard.isEmpty
                           ? const Padding(
@@ -673,7 +675,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                 for (var i = 0; i < _leaderboard.length; i++) ...[
                                   _buildLeaderboardRow(_leaderboard[i], i + 1),
                                   if (i < _leaderboard.length - 1)
-                                    const Divider(height: 12, color: AppColors.border),
+                                    Divider(height: 12, color: context.borderColor),
                                 ],
                               ],
                             ),
@@ -685,12 +687,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Quiz Challenges',
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                         TextButton.icon(
@@ -714,9 +716,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: context.cardColor,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: context.borderColor),
                         ),
                         child: const Text(
                           'No active challenges yet. Start one to compete with your study group!',
@@ -729,12 +731,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     const SizedBox(height: 24),
 
                     // Shared Materials Section
-                    const Text(
+                    Text(
                       'Shared Materials',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -743,7 +745,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10.0),
                         child: Material(
-                          color: Colors.white,
+                          color: context.cardColor,
                           borderRadius: BorderRadius.circular(16),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),
@@ -759,7 +761,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: AppColors.border),
+                                border: Border.all(color: context.borderColor),
                               ),
                               child: Row(
                                 children: [
@@ -771,10 +773,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                       children: [
                                         Text(
                                           material.title,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w600,
-                                            color: AppColors.textDark,
+                                            color: context.textColor,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
@@ -803,12 +805,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Chat Preview',
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                         TextButton(
@@ -831,9 +833,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: context.cardColor,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: context.borderColor),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -855,10 +857,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                     children: [
                                       Text(
                                         '${msg.senderName}: ',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
-                                          color: AppColors.textDark,
+                                          color: context.textColor,
                                         ),
                                       ),
                                       Expanded(
@@ -881,7 +883,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               height: 38,
                               padding: const EdgeInsets.symmetric(horizontal: 14),
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceMuted,
+                                color: context.surfaceMutedColor,
                                 borderRadius: BorderRadius.circular(19),
                               ),
                               alignment: Alignment.centerLeft,

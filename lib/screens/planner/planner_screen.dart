@@ -169,7 +169,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -180,12 +180,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Study Schedule',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                   Row(
@@ -195,9 +195,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
                         label: 'View scheduled reminders',
                         child: IconButton(
                           tooltip: 'View scheduled reminders',
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.notifications_outlined,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                             size: 24,
                           ),
                           onPressed: _openNotificationsList,
@@ -240,9 +240,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -272,16 +272,16 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                   fontWeight: FontWeight.w600,
                                   color: isSelected
                                       ? AppColors.textDark
-                                      : AppColors.textSecondary,
+                                      : context.textSecondaryColor,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 _dates[index],
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textDark,
+                                  color: isSelected ? AppColors.textDark : context.textColor,
                                 ),
                               ),
                             ],
@@ -340,12 +340,12 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Reviews due',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                     Text(
@@ -376,10 +376,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: context.cardColor,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: AppColors.primary.withOpacity(0.5),
+                              color: context.borderColor,
                             ),
                           ),
                           child: Row(
@@ -390,10 +390,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                   children: [
                                     Text(
                                       'Flashcards (${_dueFlashcards.length} due)',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.textDark,
+                                        color: context.textColor,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -509,17 +509,17 @@ class _PlannerScreenState extends State<PlannerScreen> {
                 children: [
                   Text(
                     '${_days[_selectedDayIndex]}\'s Plan',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                   Text(
                     '${_sessions.length} ${_sessions.length == 1 ? "session" : "sessions"}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: context.textSecondaryColor,
                     ),
                   ),
                 ],
@@ -550,9 +550,9 @@ class _PlannerScreenState extends State<PlannerScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: context.borderColor),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,15 +585,15 @@ class _PlannerScreenState extends State<PlannerScreen> {
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.surfaceMuted,
+                                      color: context.surfaceMutedColor,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
                                       session.status,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.textSecondary,
+                                        color: context.textSecondaryColor,
                                       ),
                                     ),
                                   ),
@@ -604,10 +604,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
                           const SizedBox(height: 8),
                           Text(
                             session.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textDark,
+                              color: context.textColor,
                             ),
                           ),
                           const SizedBox(height: 4),

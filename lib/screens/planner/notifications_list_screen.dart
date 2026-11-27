@@ -46,19 +46,19 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Scheduled Reminders',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -99,9 +99,9 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: context.cardColor,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: context.borderColor),
                           ),
                           child: Row(
                             children: [
@@ -125,10 +125,10 @@ class _NotificationsListScreenState extends State<NotificationsListScreen> {
                                   children: [
                                     Text(
                                       title,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.textDark,
+                                        color: context.textColor,
                                       ),
                                     ),
                                     const SizedBox(height: 4),

@@ -80,19 +80,19 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Create Study Group',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -106,20 +106,20 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Group Name Field
-              const Text(
+              Text(
                 'Group Name',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
@@ -133,9 +133,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     ),
                     border: InputBorder.none,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
-                    color: AppColors.textDark,
+                    color: context.textColor,
                   ),
                 ),
               ),
@@ -143,12 +143,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               const SizedBox(height: 20),
 
               // Subject Dropdown
-              const Text(
+              Text(
                 'Subject',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -158,13 +158,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.cardColor,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: context.borderColor),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: _selectedSubject,
+                      dropdownColor: context.cardColor,
                       icon: const Icon(
                         Icons.arrow_drop_down,
                         color: AppColors.textSecondary,
@@ -175,9 +176,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                           value: subject,
                           child: Text(
                             subject,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
-                              color: AppColors.textDark,
+                              color: context.textColor,
                             ),
                           ),
                         );
@@ -197,20 +198,20 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               const SizedBox(height: 20),
 
               // Description Field
-              const Text(
+              Text(
                 'Description',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: TextField(
@@ -225,9 +226,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     ),
                     border: InputBorder.none,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
-                    color: AppColors.textDark,
+                    color: context.textColor,
                   ),
                 ),
               ),

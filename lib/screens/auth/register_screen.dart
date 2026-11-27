@@ -107,7 +107,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
         leadingWidth: 100,
         leading: Semantics(
@@ -142,12 +142,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Create your account',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -162,12 +162,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 32),
 
               // Full Name
-              const Text(
+              Text(
                 'Full name',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -184,12 +184,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 20),
 
               // Email
-              const Text(
+              Text(
                 'Email',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -207,12 +207,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 20),
 
               // Password
-              const Text(
+              Text(
                 'Password',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -310,9 +310,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       );
                     },
                     child: RichText(
-                      text: const TextSpan(
+                      text: TextSpan(
                         text: 'Already have an account? ',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                         ),
@@ -321,7 +321,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             text: 'Log in',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textDark,
+                              color: context.textColor,
                             ),
                           ),
                         ],

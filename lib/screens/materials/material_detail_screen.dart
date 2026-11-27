@@ -141,19 +141,19 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
     final bool cannotDisplayContent = !_isOnline && !_isDownloaded;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context, _isDownloaded),
         ),
-        title: const Text(
+        title: Text(
           'Material Details',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -164,7 +164,7 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
             tooltip: _isDownloaded ? 'Remove from offline downloads' : 'Download for offline use',
             icon: Icon(
               _isDownloaded ? Icons.check_circle : Icons.download_outlined,
-              color: _isDownloaded ? AppColors.success : AppColors.textDark,
+              color: _isDownloaded ? AppColors.success : context.textColor,
             ),
             onPressed: _toggleDownload,
           ),
@@ -183,9 +183,9 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: context.borderColor),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,10 +196,10 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
                               Expanded(
                                 child: Text(
                                   activeMaterial.title,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textDark,
+                                    color: context.textColor,
                                     height: 1.25,
                                   ),
                                 ),
@@ -378,12 +378,12 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
                       ),
 
                     // Content Section
-                    const Text(
+                    Text(
                       'Study Content',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -392,16 +392,16 @@ class _MaterialDetailScreenState extends State<MaterialDetailScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: context.borderColor),
                       ),
                       child: Text(
                         activeMaterial.content,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           height: 1.65,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                           letterSpacing: 0.2,
                         ),
                       ),

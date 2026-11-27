@@ -117,19 +117,19 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Find Users',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -142,13 +142,13 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
             // Search Input Field (debounced ~300ms)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              color: Colors.white,
+              color: context.cardColor,
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceMuted,
+                  color: context.surfaceMutedColor,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
@@ -169,9 +169,9 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                           isDense: true,
                           contentPadding: EdgeInsets.symmetric(vertical: 12),
                         ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                         ),
                         onChanged: _onSearchChanged,
                       ),
@@ -211,7 +211,7 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: AppColors.border.withOpacity(0.3),
+                                    color: context.borderColor.withOpacity(0.3),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -221,12 +221,12 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                const Text(
+                                Text(
                                   'No students match your search',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textDark,
+                                    color: context.textColor,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -275,9 +275,9 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: context.cardColor,
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: AppColors.border),
+                                  border: Border.all(color: context.borderColor),
                                 ),
                                 child: Row(
                                   children: [
@@ -300,10 +300,10 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                                         children: [
                                           Text(
                                             user.name,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.w600,
-                                              color: AppColors.textDark,
+                                              color: context.textColor,
                                             ),
                                           ),
                                           const SizedBox(height: 3),
@@ -326,7 +326,7 @@ class _FindUsersScreenState extends State<FindUsersScreen> {
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius: BorderRadius.circular(12),
                                                 ),
-                                                side: const BorderSide(color: AppColors.border),
+                                                side: BorderSide(color: context.borderColor),
                                               ),
                                               onPressed: null,
                                               child: const Row(

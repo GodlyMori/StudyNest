@@ -101,19 +101,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Change Password',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -245,10 +245,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textDark,
+            color: context.textColor,
           ),
         ),
         const SizedBox(height: 8),
@@ -259,7 +259,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             labelText: label,
             hintText: 'Enter $label',
             filled: true,
-            fillColor: Colors.white,
+            fillColor: context.cardColor,
             prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textSecondary),
             suffixIcon: IconButton(
               tooltip: obscureText ? 'Show password' : 'Hide password',
@@ -272,11 +272,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.borderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: context.borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),

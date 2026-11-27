@@ -34,19 +34,19 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'ML Recommendations Hub',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: context.textColor,
           ),
         ),
       ),
@@ -133,12 +133,12 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
                     const SizedBox(height: 24),
 
                     // Topic Recommendations Section
-                    const Text(
+                    Text(
                       'Targeted Focus Topics',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -183,9 +183,9 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -196,10 +196,10 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
               children: [
                 Text(
                   '${item.subject} — ${item.topic}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+                    color: context.textColor,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -251,8 +251,8 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.surfaceMuted,
-              foregroundColor: AppColors.textDark,
+              backgroundColor: context.surfaceMutedColor,
+              foregroundColor: context.textColor,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
@@ -270,12 +270,12 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
             child: Semantics(
               button: true,
               label: 'Retake ${item.subject} quiz',
-              child: const Text(
+              child: Text(
                 'Retake',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
             ),
@@ -290,22 +290,22 @@ class _RecommendationsHubScreenState extends State<RecommendationsHubScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(Icons.assignment_outlined, size: 36, color: AppColors.primary),
+          Icon(Icons.assignment_outlined, size: 36, color: context.isDark ? AppColors.accent : AppColors.primary),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Take your first quiz to get your study plan',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
+              color: context.textColor,
             ),
           ),
           const SizedBox(height: 6),

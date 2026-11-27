@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -69,22 +69,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'Good afternoon,',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
+                            color: context.textSecondaryColor,
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           'Alvin',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -170,9 +170,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Container(
                           height: 38,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: context.cardColor,
                             borderRadius: BorderRadius.circular(19),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: context.borderColor),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 14),
                           child: Row(
@@ -183,10 +183,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 '${XpService.formatXp(_totalXp)} XP',
                                 key: const Key('home_xp_chip_text'),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.textDark,
+                                  color: context.textColor,
                                 ),
                               ),
                             ],
@@ -350,12 +350,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Quick Actions Header
-                    const Text(
+                    Text(
                       'Quick actions',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -464,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
       button: true,
       label: semanticLabel ?? title,
       child: Material(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: onTap,
@@ -473,21 +473,21 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.borderColor),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 20, color: AppColors.textDark),
+                Icon(icon, size: 20, color: context.textColor),
                 const SizedBox(height: 6),
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
+                    color: context.textColor,
                   ),
                 ),
               ],
@@ -507,21 +507,21 @@ class _HomeScreenState extends State<HomeScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor),
           ),
           child: Row(
-            children: const [
-              Icon(Icons.check_circle_outline, color: AppColors.success, size: 20),
-              SizedBox(width: 10),
+            children: [
+              const Icon(Icons.check_circle_outline, color: AppColors.success, size: 20),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   "No reviews due — you're all caught up",
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
+                    color: context.textSecondaryColor,
                   ),
                 ),
               ),
@@ -547,9 +547,9 @@ class _HomeScreenState extends State<HomeScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor),
           ),
           child: Row(
             children: [
@@ -560,9 +560,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: AppColors.accent.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.calendar_today,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                   size: 18,
                 ),
               ),
@@ -573,24 +573,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                     const SizedBox(height: 2),
-                    const Text(
+                    Text(
                       'Tap to view scheduled SM-2 reviews',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: context.textSecondaryColor,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+              Icon(Icons.chevron_right, color: context.textSecondaryColor),
             ],
           ),
         ),
@@ -605,12 +605,12 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'For You',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+                color: context.textColor,
               ),
             ),
             Semantics(
@@ -656,31 +656,31 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(Icons.assignment_outlined, size: 36, color: AppColors.primary),
+          Icon(Icons.assignment_outlined, size: 36, color: context.isDark ? AppColors.accent : AppColors.primary),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Take your first quiz to get your study plan',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
+              color: context.textColor,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Complete a quiz to unlock personalized topic recommendations.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
-              color: AppColors.textSecondary,
+              color: context.textSecondaryColor,
             ),
           ),
           const SizedBox(height: 16),
@@ -767,9 +767,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor),
           ),
           clipBehavior: Clip.antiAlias,
           child: IntrinsicHeight(
@@ -788,18 +788,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           '${rec.subject} — ${rec.topic}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: AppColors.textSecondary,
+                            color: context.textSecondaryColor,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -815,9 +815,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(right: 14.0),
-                  child: Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                Padding(
+                  padding: const EdgeInsets.only(right: 14.0),
+                  child: Icon(Icons.chevron_right, color: context.textSecondaryColor),
                 ),
               ],
             ),
@@ -843,9 +843,9 @@ class _HomeScreenState extends State<HomeScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -856,24 +856,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       '${rec.subject} — ${rec.topic}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textSecondary,
+                        color: context.textSecondaryColor,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+              Icon(Icons.chevron_right, color: context.textSecondaryColor),
             ],
           ),
         ),

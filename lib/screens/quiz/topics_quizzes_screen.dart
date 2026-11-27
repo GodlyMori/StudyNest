@@ -10,7 +10,7 @@ class TopicsQuizzesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -22,21 +22,21 @@ class TopicsQuizzesScreen extends StatelessWidget {
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         'Quizzes & Topics',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         'Pick a subject to start a quiz.',
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: context.textSecondaryColor,
                         ),
                       ),
                     ],
@@ -135,9 +135,9 @@ class TopicsQuizzesScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.cardColor,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: context.borderColor),
                     ),
                     child: Row(
                       children: [
@@ -145,36 +145,36 @@ class TopicsQuizzesScreen extends StatelessWidget {
                           width: 46,
                           height: 46,
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceMuted,
+                            color: context.surfaceMutedColor,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.tune, color: AppColors.primary, size: 26),
+                          child: Icon(Icons.tune, color: context.isDark ? AppColors.accent : AppColors.primary, size: 26),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
                                 'Custom Quiz',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textDark,
+                                  color: context.textColor,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 'Target specific topics, difficulty, and quiz length',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textSecondary,
+                                  color: context.textSecondaryColor,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.arrow_forward_ios, color: AppColors.textSecondary, size: 16),
+                        Icon(Icons.arrow_forward_ios, color: context.textSecondaryColor, size: 16),
                       ],
                     ),
                   ),
@@ -247,10 +247,10 @@ class TopicsQuizzesScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+                color: context.textColor,
               ),
             ),
           ],
@@ -263,7 +263,7 @@ class TopicsQuizzesScreen extends StatelessWidget {
               button: true,
               label: 'Start ${quiz['name']!} quiz',
               child: Material(
-                color: Colors.white,
+                color: context.cardColor,
                 borderRadius: BorderRadius.circular(16),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
@@ -279,7 +279,7 @@ class TopicsQuizzesScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: context.borderColor),
                     ),
                     child: Row(
                       children: [
@@ -289,18 +289,18 @@ class TopicsQuizzesScreen extends StatelessWidget {
                             children: [
                               Text(
                                 quiz['name']!,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.textDark,
+                                  color: context.textColor,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 '${quiz['questions']} • ${quiz['difficulty']} • Mastery: ${quiz['mastery']}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textSecondary,
+                                  color: context.textSecondaryColor,
                                 ),
                               ),
                             ],

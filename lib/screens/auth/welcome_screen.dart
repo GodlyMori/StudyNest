@@ -13,19 +13,19 @@ class WelcomeScreen extends StatelessWidget {
       context: context,
       builder: (dialogContext) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.white,
+        backgroundColor: dialogContext.cardColor,
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Save your progress?',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: dialogContext.textColor,
                 ),
               ),
               const SizedBox(height: 10),
@@ -73,8 +73,8 @@ class WelcomeScreen extends StatelessWidget {
                 height: 50,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textDark,
-                    side: const BorderSide(color: AppColors.border),
+                    foregroundColor: dialogContext.textColor,
+                    side: BorderSide(color: dialogContext.borderColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),

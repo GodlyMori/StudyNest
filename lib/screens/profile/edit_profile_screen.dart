@@ -139,19 +139,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final initials = _getInitials(_nameController.text);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Edit Profile',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -199,12 +199,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 32),
 
               // Display Name Field
-              const Text(
+              Text(
                 'Display Name',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -215,16 +215,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   labelText: 'Display Name',
                   hintText: 'Enter your name',
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: context.cardColor,
                   prefixIcon: const Icon(Icons.person_outline, color: AppColors.textSecondary),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: BorderSide(color: context.borderColor),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: BorderSide(color: context.borderColor),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -236,12 +236,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 24),
 
               // Subjects
-              const Text(
+              Text(
                 'Subjects of Interest',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -263,15 +263,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     label: Text(subj),
                     selected: isSelected,
                     selectedColor: AppColors.accent,
-                    backgroundColor: Colors.white,
+                    backgroundColor: context.cardColor,
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.textDark,
+                      color: isSelected ? (context.isDark ? AppColors.textDark : Colors.white) : context.textColor,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side: BorderSide(
-                        color: isSelected ? AppColors.accent : AppColors.border,
+                        color: isSelected ? AppColors.accent : context.borderColor,
                       ),
                     ),
                     onSelected: (selected) {

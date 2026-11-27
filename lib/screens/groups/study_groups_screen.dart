@@ -118,7 +118,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -129,12 +129,12 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Study Groups',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                   Semantics(
@@ -177,10 +177,12 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                         child: Container(
                           height: 38,
                           decoration: BoxDecoration(
-                            color: _selectedTab == 0 ? AppColors.backgroundDark : Colors.white,
+                            color: _selectedTab == 0
+                                ? (context.isDark ? AppColors.accent : AppColors.backgroundDark)
+                                : context.cardColor,
                             borderRadius: BorderRadius.circular(19),
                             border: Border.all(
-                              color: _selectedTab == 0 ? Colors.transparent : AppColors.border,
+                              color: _selectedTab == 0 ? Colors.transparent : context.borderColor,
                             ),
                           ),
                           alignment: Alignment.center,
@@ -189,7 +191,9 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: _selectedTab == 0 ? Colors.white : AppColors.textDark,
+                              color: _selectedTab == 0
+                                  ? (context.isDark ? AppColors.textDark : Colors.white)
+                                  : context.textColor,
                             ),
                           ),
                         ),
@@ -207,10 +211,12 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                         child: Container(
                           height: 38,
                           decoration: BoxDecoration(
-                            color: _selectedTab == 1 ? AppColors.backgroundDark : Colors.white,
+                            color: _selectedTab == 1
+                                ? (context.isDark ? AppColors.accent : AppColors.backgroundDark)
+                                : context.cardColor,
                             borderRadius: BorderRadius.circular(19),
                             border: Border.all(
-                              color: _selectedTab == 1 ? Colors.transparent : AppColors.border,
+                              color: _selectedTab == 1 ? Colors.transparent : context.borderColor,
                             ),
                           ),
                           alignment: Alignment.center,
@@ -219,7 +225,9 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: _selectedTab == 1 ? Colors.white : AppColors.textDark,
+                              color: _selectedTab == 1
+                                  ? (context.isDark ? AppColors.textDark : Colors.white)
+                                  : context.textColor,
                             ),
                           ),
                         ),
@@ -297,19 +305,19 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: context.borderColor),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             '${_myGroups.first.name} — Chat',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textDark,
+                              color: context.textColor,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -327,7 +335,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                             height: 38,
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             decoration: BoxDecoration(
-                              color: AppColors.surfaceMuted,
+                              color: context.surfaceMutedColor,
                               borderRadius: BorderRadius.circular(19),
                             ),
                             alignment: Alignment.centerLeft,
@@ -351,20 +359,20 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: context.borderColor),
                     ),
                     child: Column(
-                      children: const [
-                        Icon(Icons.check_circle_outline, size: 40, color: AppColors.success),
-                        SizedBox(height: 12),
+                      children: [
+                        const Icon(Icons.check_circle_outline, size: 40, color: AppColors.success),
+                        const SizedBox(height: 12),
                         Text(
                           'You\'ve joined all public groups!',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                         SizedBox(height: 4),
@@ -386,9 +394,9 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: context.cardColor,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: context.borderColor),
                         ),
                         child: Row(
                           children: [
@@ -411,10 +419,10 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                                 children: [
                                   Text(
                                     group.name,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.textDark,
+                                      color: context.textColor,
                                     ),
                                   ),
                                   const SizedBox(height: 3),
@@ -501,19 +509,19 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                   excludeSemantics: true,
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: AppColors.textDark),
+                      backgroundColor: context.cardColor,
+                      side: BorderSide(color: context.borderColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
                     ),
                     onPressed: _openFindUsers,
-                    child: const Text(
+                    child: Text(
                       'Find Users to Invite',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                   ),
@@ -532,8 +540,8 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                   excludeSemantics: true,
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: AppColors.textDark),
+                      backgroundColor: context.cardColor,
+                      side: BorderSide(color: context.borderColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -541,10 +549,10 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                     onPressed: _openInvites,
                     child: Text(
                       'View Invites ($_pendingInvitesCount)',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                   ),
@@ -569,7 +577,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
       button: true,
       label: 'Open $title',
       child: Material(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -580,7 +588,7 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.borderColor),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -591,10 +599,10 @@ class _StudyGroupsScreenState extends State<StudyGroupsScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                   const SizedBox(height: 4),

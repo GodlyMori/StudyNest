@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/app_colors.dart';
+import '../../main.dart';
 import '../../services/streak_service.dart';
 import '../../services/supabase_service.dart';
 import '../auth/welcome_screen.dart';
@@ -21,11 +22,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   static const String _keyStudyReminders = 'settings_study_reminders';
   static const String _keySoundEffects = 'settings_sound_effects';
   static const String _keyHiddenFromSearch = 'settings_hidden_from_search';
+  static const String _keyDarkMode = 'settings_dark_mode';
 
   bool _pushNotifications = true;
   bool _studyReminders = true;
   bool _soundEffects = true;
   bool _hiddenFromSearch = false;
+  bool _darkMode = false;
   bool _isSavingHidden = false;
   int _dailyGoal = 1;
 
@@ -59,6 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _pushNotifications = prefs.getBool(_keyPushNotifications) ?? true;
         _studyReminders = prefs.getBool(_keyStudyReminders) ?? true;
         _soundEffects = prefs.getBool(_keySoundEffects) ?? true;
+        _darkMode = prefs.getBool(_keyDarkMode) ?? false;
         _dailyGoal = goal;
         _hiddenFromSearch = hiddenFromSearch;
       });
@@ -81,6 +85,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _soundEffects = val);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keySoundEffects, val);
+  }
+
+  Future<void> _setDarkMode(bool val) async {
+    setState(() => _darkMode = val);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyDarkMode, val);
+    StudyNestApp.themeModeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
   }
 
   // Honest limitation:
@@ -170,28 +181,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
           label: 'Back',
           child: IconButton(
             tooltip: 'Back',
-            icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+            icon: Icon(Icons.arrow_back, color: context.textColor),
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        title: const Text(
+        title: Text(
           'Settings',
-          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark),
+          style: TextStyle(fontWeight: FontWeight.bold, color: context.textColor),
         ),
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          cacheExtent: 1000,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
           children: [
-            const Text(
+            Text(
               'Preferences',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textSecondary,
+                color: context.textSecondaryColor,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             _buildSwitchTile(
               title: 'Push Notifications',
@@ -199,7 +211,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _pushNotifications,
               onChanged: _setPushNotifications,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             _buildSwitchTile(
               title: 'Study Reminders',
@@ -207,7 +219,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _studyReminders,
               onChanged: _setStudyReminders,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             _buildSwitchTile(
               title: 'Sound & Mascot Effects',
@@ -215,7 +227,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _soundEffects,
               onChanged: _setSoundEffects,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             Builder(
               builder: (context) {
@@ -231,18 +243,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
+            const SizedBox(height: 4),
 
-            const SizedBox(height: 16),
+            _buildSwitchTile(
+              title: 'Dark Mode',
+              subtitle: 'Enable dark theme across the application',
+              value: _darkMode,
+              onChanged: _setDarkMode,
+              switchKey: const Key('dark_mode_switch'),
+            ),
 
-            const Text(
+            const SizedBox(height: 12),
+
+            Text(
               'Account & Security',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textSecondary,
+                color: context.textSecondaryColor,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             _buildActionTile(
               title: 'Edit Profile',
@@ -254,7 +275,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             _buildActionTile(
               title: 'Change Password',
@@ -266,7 +287,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             _buildActionTile(
               title: 'Privacy & Terms',
@@ -278,7 +299,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             _buildDailyGoalTile(),
 
@@ -366,9 +387,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderColor),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -377,20 +398,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Daily Quiz Goal',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'Target: $_dailyGoal ${_dailyGoal == 1 ? "quiz" : "quizzes"} per day',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: context.textSecondaryColor,
                     ),
                   ),
                 ],
@@ -400,11 +421,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               key: const Key('daily_goal_dropdown'),
               value: _dailyGoal,
               underline: const SizedBox(),
-              items: const [
-                DropdownMenuItem(value: 1, child: Text('1 quiz')),
-                DropdownMenuItem(value: 2, child: Text('2 quizzes')),
-                DropdownMenuItem(value: 3, child: Text('3 quizzes')),
-                DropdownMenuItem(value: 5, child: Text('5 quizzes')),
+              dropdownColor: context.cardColor,
+              iconEnabledColor: context.textColor,
+              style: TextStyle(
+                color: context.textColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              items: [
+                DropdownMenuItem(value: 1, child: Text('1 quiz', style: TextStyle(color: context.textColor))),
+                DropdownMenuItem(value: 2, child: Text('2 quizzes', style: TextStyle(color: context.textColor))),
+                DropdownMenuItem(value: 3, child: Text('3 quizzes', style: TextStyle(color: context.textColor))),
+                DropdownMenuItem(value: 5, child: Text('5 quizzes', style: TextStyle(color: context.textColor))),
               ],
               onChanged: (newGoal) async {
                 if (newGoal != null) {
@@ -430,11 +458,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       button: true,
       label: '$title toggle',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderColor),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -445,18 +473,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: context.textSecondaryColor,
                     ),
                   ),
                 ],
@@ -484,25 +512,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       label: 'Open $title',
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderColor),
         ),
         child: Material(
           color: Colors.transparent,
           child: ListTile(
             dense: true,
             visualDensity: VisualDensity.compact,
-            leading: Icon(icon, color: AppColors.textDark),
+            leading: Icon(icon, color: context.textColor),
             title: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textDark,
+                color: context.textColor,
               ),
             ),
-            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            trailing: Icon(Icons.chevron_right, color: context.textSecondaryColor),
             onTap: onTap,
           ),
         ),

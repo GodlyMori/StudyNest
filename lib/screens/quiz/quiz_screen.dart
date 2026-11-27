@@ -288,7 +288,7 @@ class _QuizScreenState extends State<QuizScreen> {
         ),
         content: Text(
           'Topic: ${question.topic}\n\n${question.explanation}',
-          style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.textDark),
+          style: TextStyle(fontSize: 14, height: 1.4, color: context.textColor),
         ),
         actions: [
           TextButton(
@@ -457,7 +457,7 @@ class _QuizScreenState extends State<QuizScreen> {
     final isLastQuestion = (_currentQuestionIndex + 1 == totalDisplay);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -520,10 +520,10 @@ class _QuizScreenState extends State<QuizScreen> {
               // Title
               Text(
                 '${widget.subject} Quiz',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
 
@@ -568,7 +568,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 child: LinearProgressIndicator(
                   value: progress,
                   minHeight: 8,
-                  backgroundColor: AppColors.border,
+                  backgroundColor: context.borderColor,
                   valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
                 ),
               ),
@@ -580,9 +580,9 @@ class _QuizScreenState extends State<QuizScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -605,10 +605,10 @@ class _QuizScreenState extends State<QuizScreen> {
                     const SizedBox(height: 10),
                     Text(
                       question.questionText,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                         height: 1.4,
                       ),
                     ),
@@ -623,19 +623,19 @@ class _QuizScreenState extends State<QuizScreen> {
                 final isSelected = (_selectedOptionIndex == index);
                 final isCorrectOption = (index == question.correctOptionIndex);
 
-                Color bgColor = Colors.white;
-                Color borderColor = AppColors.border;
-                Color textColor = AppColors.textDark;
+                Color bgColor = context.cardColor;
+                Color borderColor = context.borderColor;
+                Color textColor = context.textColor;
                 Widget? trailingIcon;
 
                 if (_isAnswered) {
                   if (isCorrectOption) {
-                    bgColor = AppColors.successLight;
+                    bgColor = context.isDark ? AppColors.success.withOpacity(0.2) : AppColors.successLight;
                     borderColor = AppColors.success;
-                    textColor = AppColors.textDark;
+                    textColor = context.isDark ? Colors.white : AppColors.textDark;
                     trailingIcon = const Icon(Icons.check_circle, color: AppColors.success, size: 20);
                   } else if (isSelected) {
-                    bgColor = AppColors.errorLight;
+                    bgColor = context.isDark ? AppColors.error.withOpacity(0.2) : AppColors.errorLight;
                     borderColor = AppColors.error;
                     textColor = AppColors.error;
                     trailingIcon = const Icon(Icons.cancel, color: AppColors.error, size: 20);
@@ -694,8 +694,8 @@ class _QuizScreenState extends State<QuizScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: (_selectedOptionIndex == question.correctOptionIndex)
-                        ? AppColors.successLight
-                        : AppColors.errorLight,
+                        ? (context.isDark ? AppColors.success.withOpacity(0.2) : AppColors.successLight)
+                        : (context.isDark ? AppColors.error.withOpacity(0.2) : AppColors.errorLight),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: (_selectedOptionIndex == question.correctOptionIndex)
@@ -735,10 +735,10 @@ class _QuizScreenState extends State<QuizScreen> {
                       const SizedBox(height: 6),
                       Text(
                         question.explanation,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           height: 1.35,
-                          color: AppColors.textDark,
+                          color: context.textColor,
                         ),
                       ),
                     ],
@@ -758,8 +758,8 @@ class _QuizScreenState extends State<QuizScreen> {
                   excludeSemantics: true,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _isAnswered ? AppColors.backgroundDark : AppColors.border,
-                      foregroundColor: Colors.white,
+                      backgroundColor: _isAnswered ? (context.isDark ? AppColors.accent : AppColors.backgroundDark) : context.borderColor,
+                      foregroundColor: _isAnswered ? (context.isDark ? AppColors.textDark : Colors.white) : (context.isDark ? AppColors.textLightMuted : Colors.white),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
@@ -789,7 +789,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   excludeSemantics: true,
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: AppColors.accentLight,
+                      backgroundColor: context.isDark ? context.cardColor : AppColors.accentLight,
                       side: BorderSide(color: AppColors.accent.withOpacity(0.4)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -798,15 +798,15 @@ class _QuizScreenState extends State<QuizScreen> {
                     onPressed: _showOwlHintDialog,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.lightbulb_outline, color: AppColors.accentDark, size: 20),
-                        SizedBox(width: 8),
+                      children: [
+                        const Icon(Icons.lightbulb_outline, color: AppColors.accentDark, size: 20),
+                        const SizedBox(width: 8),
                         Text(
                           'Ask Owl for a Hint',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
                       ],

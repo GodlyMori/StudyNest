@@ -36,23 +36,23 @@ class QuizReviewScreen extends StatelessWidget {
     final correctCount = reviewItems.where((i) => i.isCorrect).length;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: Semantics(
           button: true,
           label: 'Back',
           child: IconButton(
             tooltip: 'Back',
-            icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+            icon: Icon(Icons.arrow_back, color: context.textColor),
             onPressed: () => Navigator.pop(context),
           ),
         ),
         title: Text(
           '$subject Review',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: context.textColor,
           ),
         ),
       ),
@@ -67,9 +67,9 @@ class QuizReviewScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -77,7 +77,7 @@ class QuizReviewScreen extends StatelessWidget {
                     _buildSummaryMetric(
                       label: 'Total Questions',
                       value: '${reviewItems.length}',
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                     _buildSummaryMetric(
                       label: 'Correct',
@@ -99,12 +99,12 @@ class QuizReviewScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Question Breakdown',
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                   Text(
@@ -126,7 +126,7 @@ class QuizReviewScreen extends StatelessWidget {
                 final item = entry.value;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 14.0),
-                  child: _buildQuestionReviewCard(index + 1, item),
+                  child: _buildQuestionReviewCard(context, index + 1, item),
                 );
               }),
 
@@ -165,10 +165,10 @@ class QuizReviewScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuestionReviewCard(int displayIndex, QuestionReviewItem item) {
+  Widget _buildQuestionReviewCard(BuildContext context, int displayIndex, QuestionReviewItem item) {
     final isCorrect = item.isCorrect;
     final cardBorderColor = isCorrect
-        ? AppColors.border
+        ? context.borderColor
         : AppColors.error.withOpacity(0.5);
     final statusColor = isCorrect ? AppColors.success : AppColors.error;
     final statusText = isCorrect ? 'Correct' : 'Missed';
@@ -177,7 +177,7 @@ class QuizReviewScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: cardBorderColor, width: isCorrect ? 1.0 : 1.5),
       ),
@@ -191,7 +191,7 @@ class QuizReviewScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceMuted,
+                  color: context.surfaceMutedColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -207,8 +207,8 @@ class QuizReviewScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: isCorrect
-                      ? AppColors.successLight
-                      : AppColors.errorLight,
+                      ? (context.isDark ? AppColors.success.withOpacity(0.2) : AppColors.successLight)
+                      : (context.isDark ? AppColors.error.withOpacity(0.2) : AppColors.errorLight),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -239,10 +239,10 @@ class QuizReviewScreen extends StatelessWidget {
           // Question Text
           Text(
             item.question.questionText,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: AppColors.textDark,
+              color: context.textColor,
               height: 1.35,
             ),
           ),
@@ -255,8 +255,8 @@ class QuizReviewScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: isCorrect
-                  ? AppColors.successLight.withOpacity(0.5)
-                  : AppColors.errorLight.withOpacity(0.5),
+                  ? (context.isDark ? AppColors.success.withOpacity(0.2) : AppColors.successLight.withOpacity(0.5))
+                  : (context.isDark ? AppColors.error.withOpacity(0.2) : AppColors.errorLight.withOpacity(0.5)),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -273,10 +273,10 @@ class QuizReviewScreen extends StatelessWidget {
                 Expanded(
                   child: Text(
                     item.studentAnswerText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textDark,
+                      color: context.textColor,
                     ),
                   ),
                 ),
@@ -291,7 +291,7 @@ class QuizReviewScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.successLight.withOpacity(0.5),
+                color: context.isDark ? AppColors.success.withOpacity(0.2) : AppColors.successLight.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -308,10 +308,10 @@ class QuizReviewScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       item.correctAnswerText,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                   ),
@@ -327,7 +327,7 @@ class QuizReviewScreen extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.surfaceMuted,
+              color: context.surfaceMutedColor,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
@@ -344,10 +344,10 @@ class QuizReviewScreen extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   item.question.explanation,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     height: 1.4,
-                    color: AppColors.textDark,
+                    color: context.textColor,
                   ),
                 ),
               ],

@@ -126,13 +126,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -140,10 +140,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           children: [
             Text(
               widget.groupName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
+                color: context.textColor,
               ),
             ),
             const Text(
@@ -229,9 +229,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             maxWidth: MediaQuery.of(context).size.width * 0.75,
                           ),
                           decoration: BoxDecoration(
-                            color: isMe ? AppColors.accent : Colors.white,
+                            color: isMe ? AppColors.accent : context.cardColor,
                             borderRadius: BorderRadius.circular(16),
-                            border: isMe ? null : Border.all(color: AppColors.border),
+                            border: isMe ? null : Border.all(color: context.borderColor),
                           ),
                           child: Column(
                             crossAxisAlignment:
@@ -240,19 +240,19 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                               if (!isMe) ...[
                                 Text(
                                   msg.senderName,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textDark,
+                                    color: context.textColor,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                               ],
                               Text(
                                 msg.content,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
-                                  color: AppColors.textDark,
+                                  color: isMe ? AppColors.textDark : context.textColor,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -276,9 +276,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           // Message input bar with working send button
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: AppColors.border)),
+            decoration: BoxDecoration(
+              color: context.cardColor,
+              border: Border(top: BorderSide(color: context.borderColor)),
             ),
             child: SafeArea(
               child: Row(
@@ -286,11 +286,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   Expanded(
                     child: TextField(
                       controller: _messageController,
+                      style: TextStyle(color: context.textColor),
                       decoration: InputDecoration(
                         labelText: 'Type a message',
                         hintText: 'Type your message…',
                         filled: true,
-                        fillColor: AppColors.surfaceMuted,
+                        fillColor: context.surfaceMutedColor,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,

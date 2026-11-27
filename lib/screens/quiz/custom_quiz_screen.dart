@@ -89,23 +89,23 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
     final isPoolEmpty = matchingCount == 0;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: Semantics(
           button: true,
           label: 'Back',
           child: IconButton(
             tooltip: 'Back',
-            icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+            icon: Icon(Icons.arrow_back, color: context.textColor),
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        title: const Text(
+        title: Text(
           'Custom Quiz',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: context.textColor,
           ),
         ),
       ),
@@ -116,12 +116,12 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header description
-              const Text(
+              Text(
                 'Design Your Quiz',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 4),
@@ -150,16 +150,16 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : AppColors.textDark,
+                        color: isSelected ? (context.isDark ? AppColors.textDark : Colors.white) : context.textColor,
                       ),
                     ),
                     selected: isSelected,
-                    selectedColor: AppColors.backgroundDark,
-                    backgroundColor: Colors.white,
+                    selectedColor: context.isDark ? AppColors.accent : AppColors.backgroundDark,
+                    backgroundColor: context.cardColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                       side: BorderSide(
-                        color: isSelected ? AppColors.backgroundDark : AppColors.border,
+                        color: isSelected ? (context.isDark ? AppColors.accent : AppColors.backgroundDark) : context.borderColor,
                       ),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -223,18 +223,18 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: _isAllTopicsSelected ? Colors.white : AppColors.textDark,
+                        color: _isAllTopicsSelected ? (context.isDark ? AppColors.textDark : Colors.white) : context.textColor,
                       ),
                     ),
                     selected: _isAllTopicsSelected,
-                    selectedColor: AppColors.backgroundDark,
-                    backgroundColor: Colors.white,
+                    selectedColor: context.isDark ? AppColors.accent : AppColors.backgroundDark,
+                    backgroundColor: context.cardColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                       side: BorderSide(
                         color: _isAllTopicsSelected
-                            ? AppColors.backgroundDark
-                            : AppColors.border,
+                            ? (context.isDark ? AppColors.accent : AppColors.backgroundDark)
+                            : context.borderColor,
                       ),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -258,16 +258,16 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: isSelected ? Colors.white : AppColors.textDark,
+                          color: isSelected ? (context.isDark ? AppColors.textDark : Colors.white) : context.textColor,
                         ),
                       ),
                       selected: isSelected,
-                      selectedColor: AppColors.primary,
-                      backgroundColor: Colors.white,
+                      selectedColor: context.isDark ? AppColors.accent : AppColors.primary,
+                      backgroundColor: context.cardColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: isSelected ? AppColors.primary : AppColors.border,
+                          color: isSelected ? (context.isDark ? AppColors.accent : AppColors.primary) : context.borderColor,
                         ),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -326,10 +326,10 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.backgroundDark : Colors.white,
+                            color: isSelected ? (context.isDark ? AppColors.accent : AppColors.backgroundDark) : context.cardColor,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isSelected ? AppColors.backgroundDark : AppColors.border,
+                              color: isSelected ? (context.isDark ? AppColors.accent : AppColors.backgroundDark) : context.borderColor,
                             ),
                           ),
                           alignment: Alignment.center,
@@ -338,7 +338,7 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : AppColors.textDark,
+                              color: isSelected ? (context.isDark ? AppColors.textDark : Colors.white) : context.textColor,
                             ),
                           ),
                         ),
@@ -357,13 +357,13 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: isPoolEmpty
-                      ? AppColors.errorLight
-                      : (isPoolShort ? AppColors.accentLight : AppColors.surfaceMuted),
+                      ? (context.isDark ? AppColors.error.withOpacity(0.2) : AppColors.errorLight)
+                      : (isPoolShort ? (context.isDark ? AppColors.accent.withOpacity(0.2) : AppColors.accentLight) : context.surfaceMutedColor),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isPoolEmpty
                         ? AppColors.error
-                        : (isPoolShort ? AppColors.accent : AppColors.border),
+                        : (isPoolShort ? AppColors.accent : context.borderColor),
                   ),
                 ),
                 child: Row(
@@ -391,7 +391,7 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                           fontWeight: FontWeight.w500,
                           color: isPoolEmpty
                               ? AppColors.error
-                              : (isPoolShort ? AppColors.textDark : AppColors.textDark),
+                              : (isPoolShort ? (context.isDark ? Colors.white : AppColors.textDark) : context.textColor),
                         ),
                       ),
                     ),
@@ -411,8 +411,9 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                   child: ElevatedButton(
                     key: const Key('custom_quiz_start_button'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.backgroundDark,
-                      disabledBackgroundColor: AppColors.border,
+                      backgroundColor: context.isDark ? AppColors.accent : AppColors.backgroundDark,
+                      foregroundColor: context.isDark ? AppColors.textDark : Colors.white,
+                      disabledBackgroundColor: context.borderColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -437,10 +438,10 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
                       isPoolEmpty
                           ? 'No Questions Available'
                           : 'Start Quiz ($effectiveCount Qs) →',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: context.isDark ? AppColors.textDark : Colors.white,
                       ),
                     ),
                   ),
@@ -458,10 +459,10 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.bold,
-        color: AppColors.textDark,
+        color: context.textColor,
       ),
     );
   }
@@ -479,16 +480,16 @@ class _CustomQuizScreenState extends State<CustomQuizScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: isSelected ? Colors.white : AppColors.textDark,
+          color: isSelected ? (context.isDark ? AppColors.textDark : Colors.white) : context.textColor,
         ),
       ),
       selected: isSelected,
-      selectedColor: AppColors.backgroundDark,
-      backgroundColor: Colors.white,
+      selectedColor: context.isDark ? AppColors.accent : AppColors.backgroundDark,
+      backgroundColor: context.cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isSelected ? AppColors.backgroundDark : AppColors.border,
+          color: isSelected ? (context.isDark ? AppColors.accent : AppColors.backgroundDark) : context.borderColor,
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

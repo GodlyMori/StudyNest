@@ -136,19 +136,19 @@ class _MakeFlashcardsScreenState extends State<MakeFlashcardsScreen> {
     final selectedCount = _cards.where((c) => c.isSelected).length;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Make Flashcards',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -157,7 +157,7 @@ class _MakeFlashcardsScreenState extends State<MakeFlashcardsScreen> {
         actions: [
           IconButton(
             tooltip: 'Add manual card',
-            icon: const Icon(Icons.add, color: AppColors.textDark),
+            icon: Icon(Icons.add, color: context.textColor),
             onPressed: _addCard,
           ),
         ],
@@ -169,7 +169,7 @@ class _MakeFlashcardsScreenState extends State<MakeFlashcardsScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              color: Colors.white,
+              color: context.cardColor,
               child: Text(
                 'Review parsed cards for "${widget.material.title}". Edit, discard, or add your own cards before saving.',
                 style: const TextStyle(
@@ -179,7 +179,7 @@ class _MakeFlashcardsScreenState extends State<MakeFlashcardsScreen> {
                 ),
               ),
             ),
-            const Divider(height: 1, color: AppColors.border),
+            Divider(height: 1, color: context.borderColor),
 
             // Card list
             Expanded(
@@ -192,12 +192,12 @@ class _MakeFlashcardsScreenState extends State<MakeFlashcardsScreen> {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: draft.isSelected ? Colors.white : const Color(0xFFF1F5F9),
+                      color: draft.isSelected ? context.cardColor : context.surfaceMutedColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: draft.isSelected
                             ? AppColors.primary.withOpacity(0.3)
-                            : AppColors.border,
+                            : context.borderColor,
                         width: draft.isSelected ? 1.5 : 1.0,
                       ),
                     ),
@@ -285,7 +285,7 @@ class _MakeFlashcardsScreenState extends State<MakeFlashcardsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.cardColor,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -304,8 +304,8 @@ class _MakeFlashcardsScreenState extends State<MakeFlashcardsScreen> {
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text('+ Card'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textDark,
-                        side: const BorderSide(color: AppColors.border),
+                        foregroundColor: context.textColor,
+                        side: BorderSide(color: context.borderColor),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,

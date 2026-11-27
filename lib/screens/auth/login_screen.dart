@@ -104,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
         leadingWidth: 100,
         leading: Semantics(
@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -163,11 +163,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            color: context.textColor,
                           ),
                         ),
-                        SizedBox(height: 6),
-                        Text(
+                        const SizedBox(height: 6),
+                        const Text(
                           'Log in to continue learning.',
                           style: TextStyle(
                             fontSize: 13,
@@ -183,12 +183,12 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 24),
 
               // Email Field
-              const Text(
+              Text(
                 'Email',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -210,12 +210,12 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
 
               // Password Field (Frame 36 Error State: red border outline when error occurs)
-              const Text(
+              Text(
                 'Password',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -234,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide(
-                      color: _errorMessage != null ? AppColors.error : AppColors.border,
+                      color: _errorMessage != null ? AppColors.error : context.borderColor,
                       width: _errorMessage != null ? 1.5 : 1.0,
                     ),
                   ),
@@ -291,12 +291,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Forgot password?',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
+                        color: context.textColor,
                       ),
                     ),
                   ),
@@ -359,9 +359,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                     child: RichText(
-                      text: const TextSpan(
+                      text: TextSpan(
                         text: 'New to StudyNest? ',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                         ),
@@ -370,7 +370,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             text: 'Create account',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textDark,
+                              color: context.textColor,
                             ),
                           ),
                         ],

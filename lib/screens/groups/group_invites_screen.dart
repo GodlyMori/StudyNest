@@ -65,19 +65,19 @@ class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: context.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
         leading: IconButton(
           tooltip: 'Back',
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: Icon(Icons.arrow_back, color: context.textColor),
           onPressed: () => Navigator.pop(context, true),
         ),
-        title: const Text(
+        title: Text(
           'Group Invites',
           style: TextStyle(
-            color: AppColors.textDark,
+            color: context.textColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -97,7 +97,7 @@ class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
                           Container(
                             padding: const EdgeInsets.all(18),
                             decoration: BoxDecoration(
-                              color: AppColors.border.withOpacity(0.3),
+                              color: context.borderColor.withOpacity(0.3),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -107,12 +107,12 @@ class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          const Text(
+                          Text(
                             'No pending invitations',
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textDark,
+                              color: context.textColor,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -139,9 +139,9 @@ class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: context.cardColor,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: context.borderColor),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,10 +167,10 @@ class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
                                       children: [
                                         Text(
                                           invite.groupName,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.textDark,
+                                            color: context.textColor,
                                           ),
                                         ),
                                         const SizedBox(height: 3),
@@ -193,7 +193,7 @@ class _GroupInvitesScreenState extends State<GroupInvitesScreen> {
                                     child: OutlinedButton(
                                       style: OutlinedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(vertical: 10),
-                                        side: const BorderSide(color: AppColors.border),
+                                        side: BorderSide(color: context.borderColor),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
