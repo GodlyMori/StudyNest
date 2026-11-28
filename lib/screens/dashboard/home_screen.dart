@@ -67,28 +67,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Good afternoon,',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: context.textSecondaryColor,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Good afternoon,',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: context.textSecondaryColor,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Alvin',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: context.textColor,
-                            letterSpacing: -0.3,
+                          const SizedBox(height: 2),
+                          Text(
+                            'Alvin',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: context.textColor,
+                              letterSpacing: -0.3,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     Semantics(
                       button: true,
@@ -149,13 +152,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               const Icon(Icons.local_fire_department, size: 18, color: AppColors.textDark),
                               const SizedBox(width: 6),
-                              Text(
-                                '$_streak-Day Streak',
-                                key: const Key('home_streak_chip_text'),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textDark,
+                              Flexible(
+                                child: Text(
+                                  '$_streak-Day Streak',
+                                  key: const Key('home_streak_chip_text'),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textDark,
+                                  ),
                                 ),
                               ),
                             ],
@@ -180,13 +187,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               const Icon(Icons.bolt, size: 18, color: AppColors.accent),
                               const SizedBox(width: 6),
-                              Text(
-                                '${XpService.formatXp(_totalXp)} XP',
-                                key: const Key('home_xp_chip_text'),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.textColor,
+                              Flexible(
+                                child: Text(
+                                  '${XpService.formatXp(_totalXp)} XP',
+                                  key: const Key('home_xp_chip_text'),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.textColor,
+                                  ),
                                 ),
                               ),
                             ],
@@ -367,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 2.0,
+                      childAspectRatio: 1.4,
                       children: [
                         _buildQuickActionCard(
                           context,
@@ -470,7 +481,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: context.borderColor),
@@ -481,13 +492,19 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Icon(icon, size: 20, color: context.textColor),
                 const SizedBox(height: 6),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: context.textColor,
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: context.textColor,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -605,12 +622,14 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'For You',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: context.textColor,
+            Expanded(
+              child: Text(
+                'For You',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: context.textColor,
+                ),
               ),
             ),
             Semantics(
@@ -765,62 +784,69 @@ class _HomeScreenState extends State<HomeScreen> {
       child: GestureDetector(
         onTap: () => _handleRecommendationTap(context, rec),
         child: Container(
-          width: double.infinity,
           decoration: BoxDecoration(
             color: context.cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: context.borderColor),
           ),
           clipBehavior: Clip.antiAlias,
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  width: 6,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 6,
+                child: Container(
                   color: _priorityColor(rec.priority),
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${rec.subject} — ${rec.topic}',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: context.textColor,
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${rec.subject} — ${rec.topic}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: context.textColor,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: context.textSecondaryColor,
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: context.textSecondaryColor,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Priority: ${rec.priority.replaceAll(' priority', '')}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: _priorityColor(rec.priority),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Priority: ${rec.priority.replaceAll(' priority', '')}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: _priorityColor(rec.priority),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 14.0),
-                  child: Icon(Icons.chevron_right, color: context.textSecondaryColor),
-                ),
-              ],
-            ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 14.0),
+                    child: Icon(Icons.chevron_right, color: context.textSecondaryColor),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
