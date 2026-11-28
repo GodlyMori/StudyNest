@@ -118,7 +118,7 @@ create policy "Group members can send messages"
     to authenticated
     with check (
         public.is_group_member(public.group_messages.group_id)
-        and user_id = auth.uid()
+        and auth.uid() = sender_id
     );
 
 -- 8. Rewrite public.quiz_scores leaderboard policy

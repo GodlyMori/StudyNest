@@ -50,5 +50,20 @@ void main() {
       expect(content.contains('on public.group_challenges'), isTrue);
       expect(content.contains('on public.challenge_attempts'), isTrue);
     });
+
+    test('group_messages INSERT policy uses sender_id column', () {
+      final content = File(migrationPath).readAsStringSync();
+
+      final policyStart = content.indexOf('create policy "Group members can send messages"');
+      expect(policyStart, isNonNegative);
+
+      final nextPolicy = content.indexOf('drop policy if exists "Authenticated users can view quiz scores for leaderboards"', policyStart);
+      expect(nextPolicy, isNonNegative);
+
+      final insertPolicy = content.substring(policyStart, nextPolicy);
+
+      expect(insertPolicy.contains('sender_id'), isTrue);
+      expect(insertPolicy.contains('user_id = auth.uid()'), isFalse);
+    });
   });
 }
